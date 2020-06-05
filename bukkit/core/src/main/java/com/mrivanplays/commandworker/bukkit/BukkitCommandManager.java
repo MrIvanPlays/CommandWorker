@@ -1,0 +1,80 @@
+package com.mrivanplays.commandworker.bukkit;
+
+import com.mrivanplays.commandworker.bukkit.argtypes.MinecraftArgumentTypesAccessor;
+import com.mrivanplays.commandworker.bukkit.internal.BukkitBridgeCommand;
+import com.mrivanplays.commandworker.bukkit.registry.CmdRegistry;
+import com.mrivanplays.commandworker.bukkit.registry.CmdRegistryHandler;
+import com.mrivanplays.commandworker.core.Command;
+import com.mrivanplays.commandworker.core.CommandManager;
+import com.mrivanplays.commandworker.core.RegisteredCommand;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class BukkitCommandManager implements CommandManager<CommandSender> {
+
+  private List<RegisteredCommand<CommandSender>> registeredCommands;
+
+  private final JavaPlugin plugin;
+
+  public BukkitCommandManager(JavaPlugin plugin) {
+    this.plugin = plugin;
+    this.registeredCommands = new ArrayList<>();
+    if (CmdRegistryHandler.isSupported()) {
+      MinecraftArgumentTypesAccessor.ensureSetup();
+    }
+  }
+
+  @Override
+  public void register(
+      Command<CommandSender> command, Predicate<CommandSender> permissionCheck, String... aliases) {
+    Objects.requireNonNull(command, "command");
+    if (permissionCheck == null) {
+      permissionCheck = (sender) -> true;
+    }
+    Objects.requireNonNull(aliases, "aliases");
+    String[] populatedAliases = CommandManager.getAliases(plugin.getName(), aliases);
+    if (!aliasesFree(registeredCommands, populatedAliases)) {
+      return;
+    }
+    RegisteredCommand<CommandSender> registeredCommand =
+        new RegisteredCommand<>(populatedAliases, command, permissionCheck);
+    registeredCommands.add(registeredCommand);
+    CmdRegistry registry = CmdRegistryHandler.getRegistry();
+    if (!isBrigadierSupported()) {
+      // fallback to registering with bukkit
+      getBukkitCommandMap()
+          .register(
+              aliases[0], plugin.getName(), new BukkitBridgeCommand(registeredCommand, aliases));
+    } else {
+      registry.register(registeredCommand);
+    }
+  }
+
+  @Override
+  public boolean isBrigadierSupported() {
+    return CmdRegistryHandler.isSupported();
+  }
+
+  private CommandMap getBukkitCommandMap() {
+    try {
+      Field field = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+      field.setAccessible(true);
+      return (CommandMap) field.get(Bukkit.getServer());
+    } catch (IllegalAccessException | NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public List<RegisteredCommand<CommandSender>> getRegisteredCommands() {
+    return Collections.unmodifiableList(registeredCommands);
+  }
+}
