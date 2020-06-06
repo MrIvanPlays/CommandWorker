@@ -60,13 +60,14 @@ public class MinecraftArgumentTypesAccessor {
   }
 
   /**
-   * Retrieves the registered argument type, matching the key specified, if brigadier is supported.
+   * Retrieves the registered argument type's class, matching the key specified, if brigadier is
+   * supported.
    *
    * @param key the key of the argument type you want to retrieve
-   * @return argument type
+   * @return argument type class
    */
   @SuppressWarnings("unchecked")
-  public static ArgumentType<?> getByKey(NamespacedKey key) {
+  public static Class<? extends ArgumentType<?>> getArgumentClass(NamespacedKey key) {
     if (CmdRegistryHandler.isSupported()) {
       try {
         Object minecraftKey =
@@ -78,16 +79,31 @@ public class MinecraftArgumentTypesAccessor {
         }
 
         Class<?> argument = (Class<?>) ARGUMENT_REGISTRY_ENTRY_CLASS_FIELD.get(entry);
-        Class<? extends ArgumentType<?>> argumentType = (Class<? extends ArgumentType<?>>) argument;
+        return (Class<? extends ArgumentType<?>>) argument;
+      } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return null;
+  }
 
+  /**
+   * Retrieves the registered argument type, matching the key specified, if brigadier is supported.
+   *
+   * @param key the key of the argument type you want to retrieve
+   * @return argument type
+   */
+  public static ArgumentType<?> getByKey(NamespacedKey key) {
+    if (CmdRegistryHandler.isSupported()) {
+      try {
         Constructor<? extends ArgumentType<?>> argumentConstructor =
-            argumentType.getDeclaredConstructor();
+            getArgumentClass(key).getDeclaredConstructor();
         argumentConstructor.setAccessible(true);
         return argumentConstructor.newInstance();
-      } catch (IllegalAccessException
-          | InstantiationException
+      } catch (InstantiationException
+          | InvocationTargetException
           | NoSuchMethodException
-          | InvocationTargetException e) {
+          | IllegalAccessException e) {
         throw new RuntimeException(e);
       }
     }

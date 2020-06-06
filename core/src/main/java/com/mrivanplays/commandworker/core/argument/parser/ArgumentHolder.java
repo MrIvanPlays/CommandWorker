@@ -177,10 +177,7 @@ public final class ArgumentHolder {
    */
   public IndexRange getArgumentIndex(String argumentName) {
     ArgumentData data = argumentDataHolder.get(argumentName);
-    if (data != null) {
-      return data.getIndex();
-    }
-    return null;
+    return data != null ? data.getIndex() : null;
   }
 
   /**

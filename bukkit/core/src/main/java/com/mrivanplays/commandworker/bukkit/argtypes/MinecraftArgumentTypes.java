@@ -1,6 +1,9 @@
 package com.mrivanplays.commandworker.bukkit.argtypes;
 
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mrivanplays.commandworker.bukkit.registry.CmdRegistryHandler;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import org.bukkit.NamespacedKey;
 
 /**
@@ -16,7 +19,10 @@ public enum MinecraftArgumentTypes {
   COLOR("color"),
   COMPONENT("component"),
   DIMENSION("dimension"),
-  ENTITY("entity"),
+
+  /** Constructor parameters: single, playersOnly */
+  ENTITY("entity", boolean.class, boolean.class),
+
   ENTITY_ANCHOR("entity_anchor"),
   ENTITY_SUMMON("entity_summon"),
   FLOAT_RANGE("float_range"),
@@ -36,21 +42,59 @@ public enum MinecraftArgumentTypes {
   OBJECTIVE_CRITERIA("objective_criteria"),
   OPERATION("operation"),
   PARTICLE("particle"),
+
+  /** Responsible for both advancements and recipes. */
   RESOURCE_LOCATION("resource_location"),
+
   ROTATION("rotation"),
-  SCORE_HOLDER("score_holder"),
+
+  /** Constructor parameters: multiple */
+  SCORE_HOLDER("score_holder", boolean.class),
+
   SCOREBOARD_SLOT("scoreboard_slot"),
   SWIZZLE("swizzle"),
   TEAM("team"),
   TIME("time"),
   UUID("uuid"),
-  VEC2("vec2"),
-  VEC3("vec3");
 
-  private final ArgumentType<?> argumentType;
+  /** Constructor parameters: centerCorrect */
+  VEC2("vec2", boolean.class),
 
-  MinecraftArgumentTypes(String namespace) {
-    argumentType = MinecraftArgumentTypesAccessor.getByKey(NamespacedKey.minecraft(namespace));
+  /** Constructor parameters: centerCorrect */
+  VEC3("vec3", boolean.class);
+
+  private final NamespacedKey namespacedKey;
+
+  private ArgumentType<?> firstOption, secondOption, thirdOption, fourthOption;
+
+  MinecraftArgumentTypes(String namespace, Class<?>... constructorParameters) {
+    namespacedKey = NamespacedKey.minecraft(namespace);
+    if (CmdRegistryHandler.isSupported()) {
+      if (constructorParameters == null) {
+        firstOption = MinecraftArgumentTypesAccessor.getByKey(namespacedKey);
+      } else {
+        try {
+          Class<? extends ArgumentType<?>> argumentClass =
+              MinecraftArgumentTypesAccessor.getArgumentClass(namespacedKey);
+          Constructor<? extends ArgumentType<?>> constructor =
+              argumentClass.getDeclaredConstructor(constructorParameters);
+          if (constructorParameters.length == 1) {
+            this.firstOption = constructor.newInstance(true);
+            this.secondOption = constructor.newInstance(false);
+          } else {
+            this.firstOption = constructor.newInstance(false, true);
+            this.secondOption = constructor.newInstance(true, false);
+            this.thirdOption = constructor.newInstance(true, true);
+            this.fourthOption = constructor.newInstance(false, false);
+          }
+        } catch (NoSuchMethodException
+            | IllegalAccessException
+            | InstantiationException
+            | InvocationTargetException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
   }
 
   /**
@@ -59,6 +103,29 @@ public enum MinecraftArgumentTypes {
    * @return argument type
    */
   public ArgumentType<?> getArgumentType() {
-    return argumentType;
+    return firstOption;
+  }
+
+  /**
+   * Returns the key of this argument type.
+   *
+   * @return key
+   */
+  public NamespacedKey getKey() {
+    return namespacedKey;
+  }
+
+  // bellow are the other types of the argument type.
+
+  public ArgumentType<?> getSecondWay() {
+    return secondOption == null ? firstOption : secondOption;
+  }
+
+  public ArgumentType<?> getThirdWay() {
+    return thirdOption == null ? getSecondWay() : thirdOption;
+  }
+
+  public ArgumentType<?> getFourthWay() {
+    return fourthOption == null ? getThirdWay() : fourthOption;
   }
 }
