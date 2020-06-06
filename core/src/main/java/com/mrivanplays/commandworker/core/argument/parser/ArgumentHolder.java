@@ -157,7 +157,7 @@ public final class ArgumentHolder {
             .filter(entry -> isTyped(entry.getKey()))
             .map(entry -> entry.getValue().getArgument())
             .collect(Collectors.toList());
-    return candidates.get(candidates.size() - 1);
+    return candidates.get(0);
   }
 
   /**

@@ -1,6 +1,5 @@
 package com.mrivanplays.commandworker.bukkit.internal;
 
-import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
@@ -19,6 +18,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class BukkitBridgeCommand extends org.bukkit.command.Command {
@@ -36,17 +36,29 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
 
   @Override
   public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-    ArgumentHolder holder = new ArgumentHolder(args, command.getCommandStructure());
+    LiteralNode structure = command.getCommandStructure();
+    ArgumentHolder holder = new ArgumentHolder(args, structure);
+    if (args.length == 0 && structure.shouldExecuteCommand()) {
+      return executeCommand(sender, commandLabel, holder);
+    } else if (args.length == 0) {
+      sender.sendMessage(
+          ChatColor.RED
+              + CommandSyntaxException.BUILT_IN_EXCEPTIONS
+                  .dispatcherUnknownCommand()
+                  .create()
+                  .getMessage());
+      return true;
+    }
     Argument argument = holder.getLastArgument();
     if (argument.shouldExecuteCommand()) {
       return executeCommand(sender, commandLabel, holder);
     } else {
-      StringReader reader = new StringReader(holder.getRawRequiredArgument(argument.getName()));
       sender.sendMessage(
-          CommandSyntaxException.BUILT_IN_EXCEPTIONS
-              .dispatcherUnknownCommand()
-              .createWithContext(reader)
-              .getMessage());
+          ChatColor.RED
+              + CommandSyntaxException.BUILT_IN_EXCEPTIONS
+                  .dispatcherUnknownCommand()
+                  .create()
+                  .getMessage());
       return true;
     }
   }
@@ -55,7 +67,7 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
     try {
       return command.getCommand().execute(sender, label, args);
     } catch (CommandSyntaxException e) {
-      sender.sendMessage(e.getMessage());
+      sender.sendMessage(ChatColor.RED + e.getMessage());
       return true;
     }
   }
