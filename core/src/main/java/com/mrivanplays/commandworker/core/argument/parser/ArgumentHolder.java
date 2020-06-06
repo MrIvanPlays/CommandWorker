@@ -154,7 +154,15 @@ public final class ArgumentHolder {
   public Argument getLastArgument() {
     List<Argument> candidates =
         argumentDataHolder.entrySet().stream()
-            .filter(entry -> isTyped(entry.getKey()))
+            .filter(
+                entry -> {
+                  IndexRange indexRange = entry.getValue().getIndex();
+                  int compared =
+                      indexRange.isRange()
+                          ? (indexRange.getEnd() + 1)
+                          : (indexRange.getIndex() + 1);
+                  return isTyped(entry.getKey()) && (compared == args.length);
+                })
             .map(entry -> entry.getValue().getArgument())
             .collect(Collectors.toList());
     return candidates.get(0);

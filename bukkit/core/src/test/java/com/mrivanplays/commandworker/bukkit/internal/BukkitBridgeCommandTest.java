@@ -57,10 +57,11 @@ public class BukkitBridgeCommandTest {
                     RequiredArgument.argument("player", StringArgumentType.word())
                         .markShouldNotExecuteCommand()
                         .then(
-                            RequiredArgument.argument("message", StringArgumentType.greedyString())
+                            RequiredArgument.argument("integer", IntegerArgumentType.integer())
+                                .markShouldNotExecuteCommand()
                                 .then(
                                     RequiredArgument.argument(
-                                        "integer", IntegerArgumentType.integer()))));
+                                        "message", StringArgumentType.greedyString()))));
           }
         };
     registeredDummy =
@@ -78,10 +79,7 @@ public class BukkitBridgeCommandTest {
 
   @Test
   public void testWithDummyPlayer() {
-    String argInput = "DummyPlayer hello";
-
-    String[] args = argInput.split(" ");
-    bridgeCommand.execute(sender, "test", args);
+    bridgeCommand.execute(sender, "test", new String[]{"DummyPlayer", "1", "a"});
 
     List<String> catchedMessages = sender.getCatchedMessages();
     Assert.assertEquals(1, catchedMessages.size());
@@ -90,10 +88,7 @@ public class BukkitBridgeCommandTest {
 
   @Test
   public void testWithOtherPlayer() {
-    String argInput = "MrIvanPlays hello";
-
-    String[] args = argInput.split(" ");
-    bridgeCommand.execute(sender, "test", args);
+    bridgeCommand.execute(sender, "test", new String[] {"MrIvanPlays", "0", "hello"});
 
     List<String> catchedMessages = sender.getCatchedMessages();
     Assert.assertEquals(2, catchedMessages.size());
@@ -111,7 +106,7 @@ public class BukkitBridgeCommandTest {
   }
 
   @Test
-  public void testNoMessage() {
+  public void testOnlyPlayer() {
     String[] args = new String[] {"MrIvanPlays"};
     bridgeCommand.execute(sender, "test", args);
 
