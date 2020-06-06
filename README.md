@@ -30,13 +30,6 @@ public class TellMeCommand implements BukkitCommand {
 
     @Override
     public boolean execute(CommandSender sender, String label, ArgumentHolder args) {
-        // if you have the arguments being specified as "should not execute command", brigadier won't
-        // execute the command without these arguments, but this check is better to stay just in 
-        // case, and if the plugin is ran on non-brigadier supported minecraft version
-        if (!args.isTyped("player") || !args.isTyped("message")) {
-            sender.sendMessage("Usage: /tellme <player> <message>");
-            return true;
-        }
         Player player = Bukkit.getPlayer(args.getRawRequiredArgument("player"));
         if (player == null) {
             sender.sendMessage("Error: Player not online.");
@@ -52,7 +45,7 @@ public class TellMeCommand implements BukkitCommand {
     public LiteralNode createCommandStructure() {
         return LiteralNode.node()
                 .argument(RequiredArgument.argument("player", StringArgumentType.word())
-                        .markShouldNotExecuteCommand()
+                        .markShouldNotExecuteCommand() // this makes the argument required
                         .suggests(builder -> {
                             for (Player player : Bukkit.getOnlinePlayers()) {
                                 builder.suggest(player.getName());

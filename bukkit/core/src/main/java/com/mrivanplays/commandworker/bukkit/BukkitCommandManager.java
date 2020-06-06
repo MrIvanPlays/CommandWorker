@@ -24,6 +24,8 @@ public class BukkitCommandManager implements CommandManager<CommandSender> {
 
   private final JavaPlugin plugin;
 
+  private boolean shouldFallback = true;
+
   public BukkitCommandManager(JavaPlugin plugin) {
     this.plugin = plugin;
     this.registeredCommands = new ArrayList<>();
@@ -49,13 +51,25 @@ public class BukkitCommandManager implements CommandManager<CommandSender> {
     registeredCommands.add(registeredCommand);
     CmdRegistry registry = CmdRegistryHandler.getRegistry();
     if (!isBrigadierSupported()) {
-      // fallback to registering with bukkit
-      getBukkitCommandMap()
-          .register(
-              aliases[0], plugin.getName(), new BukkitBridgeCommand(registeredCommand, aliases));
+      if (shouldFallback) {
+        // fallback to registering with bukkit
+        getBukkitCommandMap()
+            .register(
+                aliases[0], plugin.getName(), new BukkitBridgeCommand(registeredCommand, aliases));
+      }
     } else {
       registry.register(registeredCommand);
     }
+  }
+
+  @Override
+  public boolean shouldFallback() {
+    return shouldFallback;
+  }
+
+  @Override
+  public void setShouldFallback(boolean shouldFallback) {
+    this.shouldFallback = shouldFallback;
   }
 
   @Override

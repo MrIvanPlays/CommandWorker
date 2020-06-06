@@ -10,8 +10,12 @@ import com.mrivanplays.commandworker.core.argument.Argument;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** Represents a holder of arguments. */
 public final class ArgumentHolder {
@@ -31,38 +35,37 @@ public final class ArgumentHolder {
 
   private CommandContext<?> context;
   private final String[] args;
-  private Map<String, ArgumentType<?>> argumentTypes;
-  private Map<String, IndexRange> byIndex;
+  private Map<String, ArgumentData> argumentDataHolder;
 
   public ArgumentHolder(CommandContext<?> context, LiteralNode commandStructure) {
     this.context = context;
 
     String[] commandSplit = context.getInput().split(" ");
     this.args = Arrays.copyOfRange(commandSplit, 1, commandSplit.length);
-    this.byIndex = new HashMap<>();
+    this.argumentDataHolder = new HashMap<>();
 
-    this.populateMaps(commandStructure.getArguments(), false);
+    this.populateMaps(commandStructure.getArguments());
   }
 
   public ArgumentHolder(String[] args, LiteralNode commandStructure) {
     this.args = args;
-    this.argumentTypes = new HashMap<>();
-    this.byIndex = new HashMap<>();
+    this.argumentDataHolder = new HashMap<>();
 
-    this.populateMaps(commandStructure.getArguments(), true);
+    this.populateMaps(commandStructure.getArguments());
   }
 
-  private void populateMaps(List<Argument> arguments, boolean addToArgumentTypes) {
+  private void populateMaps(List<Argument> arguments) {
     if (arguments.isEmpty()) {
       return;
     }
     Map<Argument, Integer> newArgs = getRequiredArgs(arguments, -1);
-    for (Map.Entry<Argument, Integer> entry : newArgs.entrySet()) {
+    Set<Entry<Argument, Integer>> entrySet =
+        newArgs.entrySet().stream()
+            .sorted(Entry.comparingByValue())
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    for (Map.Entry<Argument, Integer> entry : entrySet) {
       Argument argument = entry.getKey();
       int index = entry.getValue();
-      if (addToArgumentTypes) {
-        argumentTypes.put(argument.getName(), argument.getArgumentType());
-      }
       IndexRange range;
       if (argument.getArgumentType().getClass().isAssignableFrom(StringArgumentType.class)) {
         StringArgumentType.StringType type =
@@ -75,7 +78,7 @@ public final class ArgumentHolder {
       } else {
         range = new IndexRange(index);
       }
-      byIndex.put(argument.getName(), range);
+      argumentDataHolder.put(argument.getName(), ArgumentData.newArgumentData(range, argument));
       if (range.isRange()) {
         break;
       }
@@ -109,7 +112,7 @@ public final class ArgumentHolder {
    * @param <V> value type
    * @return value
    */
-  public <V> V getRequiredArgument(String name, Class<V> type) {
+  public <V> V getRequiredArgument(String name, Class<V> type) throws CommandSyntaxException {
     if (context != null) {
       try {
         return context.getArgument(name, type);
@@ -120,30 +123,41 @@ public final class ArgumentHolder {
         throw e;
       }
     }
-    ArgumentType<?> argumentType = argumentTypes.get(name);
-    if (argumentType != null) {
-      String raw = getRawRequiredArgument(name);
+    ArgumentData argumentData = argumentDataHolder.get(name);
+    if (argumentData != null) {
+      String raw = getRawRequiredArgument(argumentData.getIndex());
       if (raw == null) {
         return null;
       }
-      try {
-        Object parsed = argumentType.parse(new StringReader(raw));
-        if (PRIMITIVE_TO_WRAPPER.getOrDefault(type, type).isAssignableFrom(parsed.getClass())) {
-          return (V) parsed;
-        } else {
-          throw new IllegalArgumentException(
-              "Argument '"
-                  + name
-                  + "' is defined as "
-                  + parsed.getClass().getSimpleName()
-                  + ", not "
-                  + type);
-        }
-      } catch (CommandSyntaxException e) {
-        return null;
+      ArgumentType<?> argumentType = argumentData.getArgument().getArgumentType();
+      Object parsed = argumentType.parse(new StringReader(raw));
+      if (PRIMITIVE_TO_WRAPPER.getOrDefault(type, type).isAssignableFrom(parsed.getClass())) {
+        return (V) parsed;
+      } else {
+        throw new IllegalArgumentException(
+            "Argument '"
+                + name
+                + "' is defined as "
+                + parsed.getClass().getSimpleName()
+                + ", not "
+                + type);
       }
     }
     return null;
+  }
+
+  /**
+   * Returns the last argument, for which we have a value.
+   *
+   * @return last argument
+   */
+  public Argument getLastArgument() {
+    List<Argument> candidates =
+        argumentDataHolder.entrySet().stream()
+            .filter(entry -> isTyped(entry.getKey()))
+            .map(entry -> entry.getValue().getArgument())
+            .collect(Collectors.toList());
+    return candidates.get(candidates.size() - 1);
   }
 
   /**
@@ -154,13 +168,18 @@ public final class ArgumentHolder {
    * @return range if present
    */
   public IndexRange getArgumentIndex(String argumentName) {
-    return byIndex.get(argumentName);
+    ArgumentData data = argumentDataHolder.get(argumentName);
+    if (data != null) {
+      return data.getIndex();
+    }
+    return null;
   }
 
   /**
-   * Returns whether or not the specified argument name has argument value.
+   * Returns whether or not the specified argument is typed (being present when the command was
+   * executed).
    *
-   * @param argumentName argument name
+   * @param argumentName the argument's name that you want to check if has value or not.
    * @return <code>true</code> if typed, <code>false</code> otherwise
    */
   public boolean isTyped(String argumentName) {
@@ -175,7 +194,10 @@ public final class ArgumentHolder {
    * @return argument
    */
   public String getRawRequiredArgument(String argumentName) {
-    IndexRange indexRange = getArgumentIndex(argumentName);
+    return getRawRequiredArgument(getArgumentIndex(argumentName));
+  }
+
+  private String getRawRequiredArgument(IndexRange indexRange) {
     if (indexRange == null) {
       return null;
     }

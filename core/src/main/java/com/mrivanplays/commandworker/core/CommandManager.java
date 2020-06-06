@@ -42,6 +42,20 @@ public interface CommandManager<S> {
   boolean isBrigadierSupported();
 
   /**
+   * Returns whether or not this command manager should fallback to the implemented on platform's
+   * normal registering technique when brigadier isn't supported.
+   *
+   * @return <code>true</code> if should fallback, <code>false</code> otherwise
+   */
+  boolean shouldFallback();
+
+  /**
+   * @param shouldFallback value
+   * @see #shouldFallback()
+   */
+  void setShouldFallback(boolean shouldFallback);
+
+  /**
    * Returns unmodifiable copy of the commands, registered and held by this command manager.
    *
    * @return registered commands
