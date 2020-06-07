@@ -91,4 +91,16 @@ public class BukkitCommandManager implements CommandManager<CommandSender> {
   public List<RegisteredCommand<CommandSender>> getRegisteredCommands() {
     return Collections.unmodifiableList(registeredCommands);
   }
+
+  @Override
+  public String toString() {
+    return "BukkitCommandManager(plugin="
+        + plugin
+        + ", shouldFallback="
+        + shouldFallback
+        + ", brigadierSupported="
+        + isBrigadierSupported()
+        + ", registeredCommands="
+        + registeredCommands;
+  }
 }

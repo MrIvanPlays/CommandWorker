@@ -81,7 +81,7 @@ public class MinecraftArgumentTypesAccessor {
         Class<?> argument = (Class<?>) ARGUMENT_REGISTRY_ENTRY_CLASS_FIELD.get(entry);
         return (Class<? extends ArgumentType<?>>) argument;
       } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
-        throw new RuntimeException(e);
+        return null;
       }
     }
     return null;
@@ -100,11 +100,12 @@ public class MinecraftArgumentTypesAccessor {
             getArgumentClass(key).getDeclaredConstructor();
         argumentConstructor.setAccessible(true);
         return argumentConstructor.newInstance();
-      } catch (InstantiationException
+      } catch (NullPointerException
+          | InstantiationException
           | InvocationTargetException
           | NoSuchMethodException
           | IllegalAccessException e) {
-        throw new RuntimeException(e);
+        return null;
       }
     }
     return null;

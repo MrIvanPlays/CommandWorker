@@ -103,4 +103,13 @@ public final class LiteralNode {
     }
     return Optional.empty();
   }
+
+  @Override
+  public String toString() {
+    return "LiteralNode(shouldExecuteCommand="
+        + shouldExecuteCommand
+        + ", arguments="
+        + arguments
+        + ")";
+  }
 }

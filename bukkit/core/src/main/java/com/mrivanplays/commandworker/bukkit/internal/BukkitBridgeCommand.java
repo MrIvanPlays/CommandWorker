@@ -37,7 +37,7 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
   @Override
   public boolean execute(CommandSender sender, String commandLabel, String[] args) {
     LiteralNode structure = command.getCommandStructure();
-    ArgumentHolder holder = new ArgumentHolder(args, structure);
+    ArgumentHolder holder = new ArgumentHolder(String.join(" ", args), structure);
     if (args.length == 0 && structure.shouldExecuteCommand()) {
       return executeCommand(sender, commandLabel, holder);
     } else if (args.length == 0) {
@@ -103,6 +103,14 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
             if (argument.getSuggestionsConsumer() != null) {
               argument.getSuggestionsConsumer().accept(builder);
             } else {
+              if (argument.getArgumentType() == null) {
+                // why we check here? obviously a required argument's argument type should not be
+                // null!
+                // well, apparently the minecraft argument types would be null if this is even
+                // registered! and that's why we have to have an exception here, returning empty
+                // stream.
+                return Stream.empty();
+              }
               CompletableFuture<Suggestions> suggestionsFuture =
                   argument.getArgumentType().listSuggestions(null, builder);
               return suggestionsFuture.join().getList().stream().map(Suggestion::getText);

@@ -60,7 +60,7 @@ public class CmdRegistry1_13_R2 implements CmdRegistry {
         command.execute(
                 context.getSource().getBukkitSender(),
                 alias,
-                new ArgumentHolder(context, structure))
+                new ArgumentHolder(context.getInput().replace(alias + " ", ""), structure))
             ? 1
             : 0;
   }

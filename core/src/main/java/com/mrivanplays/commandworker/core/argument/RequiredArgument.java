@@ -100,4 +100,17 @@ public final class RequiredArgument<V> implements Argument {
   public List<Argument> getChildren() {
     return Collections.unmodifiableList(children);
   }
+
+  @Override
+  public String toString() {
+    return "RequiredArgument(name="
+        + name
+        + ", shouldExecuteCommand="
+        + shouldExecuteCommand
+        + ", argumentType="
+        + type
+        + ", children="
+        + children
+        + ")";
+  }
 }

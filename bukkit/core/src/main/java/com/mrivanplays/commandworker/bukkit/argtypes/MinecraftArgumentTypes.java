@@ -87,11 +87,15 @@ public enum MinecraftArgumentTypes {
             this.thirdOption = constructor.newInstance(true, true);
             this.fourthOption = constructor.newInstance(false, false);
           }
-        } catch (NoSuchMethodException
+        } catch (NullPointerException
+            | NoSuchMethodException
             | IllegalAccessException
             | InstantiationException
             | InvocationTargetException e) {
-          throw new RuntimeException(e);
+          this.firstOption = null;
+          this.secondOption = null;
+          this.thirdOption = null;
+          this.fourthOption = null;
         }
       }
     }

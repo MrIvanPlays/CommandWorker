@@ -1,5 +1,6 @@
 package com.mrivanplays.commandworker.core;
 
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 /**
@@ -68,5 +69,18 @@ public final class RegisteredCommand<S> {
    */
   public Command<S> getCommand() {
     return command;
+  }
+
+  @Override
+  public String toString() {
+    return "RegisteredCommand(command="
+        + command
+        + ", aliases="
+        + Arrays.deepToString(aliases)
+        + ", permissionCheckFunction="
+        + permissionChecker
+        + ", commandStructure="
+        + commandStructure
+        + ")";
   }
 }

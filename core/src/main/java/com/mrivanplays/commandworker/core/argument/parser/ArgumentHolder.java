@@ -1,13 +1,10 @@
 package com.mrivanplays.commandworker.core.argument.parser;
 
 import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mrivanplays.commandworker.core.LiteralNode;
 import com.mrivanplays.commandworker.core.argument.Argument;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -33,55 +30,94 @@ public final class ArgumentHolder {
     PRIMITIVE_TO_WRAPPER.put(double.class, Double.class);
   }
 
-  private CommandContext<?> context;
-  private final String[] args;
+  private final String input;
+  private StringReader reader;
   private Map<String, ArgumentData> argumentDataHolder;
 
-  public ArgumentHolder(CommandContext<?> context, LiteralNode commandStructure) {
-    this.context = context;
-
-    String[] commandSplit = context.getInput().split(" ");
-    this.args = Arrays.copyOfRange(commandSplit, 1, commandSplit.length);
+  public ArgumentHolder(String input, LiteralNode commandStructure) {
+    this.input = input;
+    this.reader = new StringReader(input);
+    reader.setCursor(0);
     this.argumentDataHolder = new HashMap<>();
 
-    this.populateMaps(commandStructure.getArguments());
+    this.handleArguments(commandStructure.getArguments());
   }
 
-  public ArgumentHolder(String[] args, LiteralNode commandStructure) {
-    this.args = args;
-    this.argumentDataHolder = new HashMap<>();
-
-    this.populateMaps(commandStructure.getArguments());
-  }
-
-  private void populateMaps(List<Argument> arguments) {
+  private void handleArguments(List<Argument> arguments) {
     if (arguments.isEmpty()) {
       return;
     }
     Map<Argument, Integer> newArgs = getRequiredArgs(arguments, -1);
+    if (input.isEmpty()) {
+      newArgs.forEach(
+          (argument, pos) ->
+              argumentDataHolder.put(
+                  argument.getName(),
+                  ArgumentData.newArgumentData(null, argument, null, null, null)));
+      return;
+    }
     Set<Entry<Argument, Integer>> entrySet =
         newArgs.entrySet().stream()
             .sorted(Entry.comparingByValue())
             .collect(Collectors.toCollection(LinkedHashSet::new));
+    int index = 0;
     for (Map.Entry<Argument, Integer> entry : entrySet) {
       Argument argument = entry.getKey();
-      int index = entry.getValue();
-      IndexRange range;
-      if (argument.getArgumentType().getClass().isAssignableFrom(StringArgumentType.class)) {
-        StringArgumentType.StringType type =
-            StringArgumentType.class.cast(argument.getArgumentType()).getType();
-        if (type == StringArgumentType.StringType.GREEDY_PHRASE) {
-          range = new IndexRange(index, args.length - 1);
+      int argumentIndex = entry.getValue();
+      reader.skipWhitespace();
+      int start = reader.getCursor();
+      if (argument.getArgumentType() == null) {
+        // we're at minecraft argument type, and brigadier is not supported.
+        if (index == (entrySet.size() - 1)) { // last argument
+          String raw = reader.getRemaining();
+          int splitIndex = raw.split(" ").length - 1;
+          IndexRange range;
+          if (argumentIndex == splitIndex) {
+            range = new IndexRange(argumentIndex);
+          } else {
+            range = new IndexRange(argumentIndex, argumentIndex + splitIndex);
+          }
+          argumentDataHolder.put(
+              argument.getName(), ArgumentData.newArgumentData(range, argument, null, raw, null));
         } else {
-          range = new IndexRange(index);
+          String raw = reader.readUnquotedString();
+          reader.skipWhitespace();
+          IndexRange range = new IndexRange(argumentIndex);
+          argumentDataHolder.put(
+              argument.getName(), ArgumentData.newArgumentData(range, argument, null, raw, null));
         }
+        continue;
+      }
+
+      Object parsed;
+      try {
+        parsed = argument.getArgumentType().parse(reader);
+      } catch (CommandSyntaxException e) {
+        argumentDataHolder.put(
+            argument.getName(), ArgumentData.newArgumentData(null, argument, null, null, e));
+        continue;
+      }
+      int end = reader.getCursor();
+      reader.skipWhitespace();
+
+      String raw = input.substring(start, end);
+      int splitIndex;
+      if ((raw.length() == 1 && raw.charAt(0) == ' ') || raw.isEmpty()) {
+        argumentDataHolder.put(
+            argument.getName(), ArgumentData.newArgumentData(null, argument, null, null, null));
+        continue;
       } else {
-        range = new IndexRange(index);
+        splitIndex = raw.split(" ").length - 1;
       }
-      argumentDataHolder.put(argument.getName(), ArgumentData.newArgumentData(range, argument));
-      if (range.isRange()) {
-        break;
+      IndexRange range;
+      if (argumentIndex == splitIndex) {
+        range = new IndexRange(argumentIndex);
+      } else {
+        range = new IndexRange(argumentIndex, argumentIndex + splitIndex);
       }
+      argumentDataHolder.put(
+          argument.getName(), ArgumentData.newArgumentData(range, argument, parsed, raw, null));
+      index++;
     }
   }
 
@@ -113,34 +149,31 @@ public final class ArgumentHolder {
    * @return value
    */
   public <V> V getRequiredArgument(String name, Class<V> type) throws CommandSyntaxException {
-    if (context != null) {
-      try {
-        return context.getArgument(name, type);
-      } catch (IllegalArgumentException e) {
-        if (e.getMessage().contains("No such argument")) {
-          return null;
-        }
-        throw e;
-      }
-    }
     ArgumentData argumentData = argumentDataHolder.get(name);
     if (argumentData != null) {
-      String raw = getRawRequiredArgument(argumentData.getIndex());
-      if (raw == null) {
-        return null;
+      if (argumentData.getCommandSyntaxException() != null) {
+        throw argumentData.getCommandSyntaxException();
       }
-      ArgumentType<?> argumentType = argumentData.getArgument().getArgumentType();
-      Object parsed = argumentType.parse(new StringReader(raw));
+
+      if (argumentData.getArgument().getArgumentType() == null) {
+        throw new IllegalArgumentException(
+            "Cannot parse minecraft argument type on non-brigadier supported version. \n "
+                + "THIS IS NOT A BUG !!! Please use getRawRequiredArgument and PARSE THE ARGUMENT YOURSELF");
+      }
+
+      Object parsed = argumentData.getParsedValue();
       if (PRIMITIVE_TO_WRAPPER.getOrDefault(type, type).isAssignableFrom(parsed.getClass())) {
         return (V) parsed;
       } else {
         throw new IllegalArgumentException(
             "Argument '"
                 + name
-                + "' is defined as "
+                + "' is defined as '"
                 + parsed.getClass().getSimpleName()
-                + ", not "
-                + type);
+                + "', not "
+                + type.getSimpleName()
+                + "\n THIS IS NOT A BUG. IF the argument type is a minecraft one, "
+                + "please use getRawRequiredArgument and PARSE IT YOURSELF.");
       }
     }
     return null;
@@ -152,20 +185,20 @@ public final class ArgumentHolder {
    * @return last argument
    */
   public Argument getLastArgument() {
-    List<Argument> candidates =
-        argumentDataHolder.entrySet().stream()
-            .filter(
-                entry -> {
-                  IndexRange indexRange = entry.getValue().getIndex();
-                  int compared =
-                      indexRange.isRange()
-                          ? (indexRange.getEnd() + 1)
-                          : (indexRange.getIndex() + 1);
-                  return isTyped(entry.getKey()) && (compared == args.length);
-                })
-            .map(entry -> entry.getValue().getArgument())
-            .collect(Collectors.toList());
-    return candidates.get(0);
+    Collection<ArgumentData> argumentData = argumentDataHolder.values();
+    Argument argument = null;
+    for (ArgumentData data : argumentData) {
+      if (isTyped(data)) {
+        IndexRange indexRange = data.getIndex();
+        int compared =
+            indexRange.isRange() ? (indexRange.getEnd() + 1) : (indexRange.getIndex() + 1);
+        if (compared == size()) {
+          argument = data.getArgument();
+          break;
+        }
+      }
+    }
+    return argument;
   }
 
   /**
@@ -188,8 +221,11 @@ public final class ArgumentHolder {
    * @return <code>true</code> if typed, <code>false</code> otherwise
    */
   public boolean isTyped(String argumentName) {
-    IndexRange index = getArgumentIndex(argumentName);
-    return index != null && (size() >= index.getStart() + 1);
+    return isTyped(argumentDataHolder.get(argumentName));
+  }
+
+  private boolean isTyped(ArgumentData argumentData) {
+    return argumentData != null && argumentData.getRawValue() != null;
   }
 
   /**
@@ -199,24 +235,8 @@ public final class ArgumentHolder {
    * @return argument
    */
   public String getRawRequiredArgument(String argumentName) {
-    return getRawRequiredArgument(getArgumentIndex(argumentName));
-  }
-
-  private String getRawRequiredArgument(IndexRange indexRange) {
-    if (indexRange == null) {
-      return null;
-    }
-    String value;
-    if (!indexRange.isRange()) {
-      value = args[indexRange.getIndex()];
-    } else {
-      StringBuilder buffer = new StringBuilder();
-      for (int i = indexRange.getStart(); i <= indexRange.getEnd(); i++) {
-        buffer.append(args[i]).append(' ');
-      }
-      value = buffer.substring(0, buffer.length() - 1);
-    }
-    return value;
+    ArgumentData argumentData = argumentDataHolder.get(argumentName);
+    return argumentData == null ? null : argumentData.getRawValue();
   }
 
   /**
@@ -225,7 +245,7 @@ public final class ArgumentHolder {
    * @return length
    */
   public int size() {
-    return args.length;
+    return (int) argumentDataHolder.values().stream().filter(this::isTyped).count();
   }
 
   /**
@@ -234,6 +254,6 @@ public final class ArgumentHolder {
    * @return raw arguments
    */
   public String[] getRawArgs() {
-    return args;
+    return input.split(" ");
   }
 }

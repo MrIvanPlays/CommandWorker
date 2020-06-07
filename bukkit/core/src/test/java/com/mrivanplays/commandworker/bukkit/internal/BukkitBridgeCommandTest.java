@@ -81,28 +81,28 @@ public class BukkitBridgeCommandTest {
   public void testWithDummyPlayer() {
     bridgeCommand.execute(sender, "test", new String[]{"DummyPlayer", "1", "a"});
 
-    List<String> catchedMessages = sender.getCatchedMessages();
-    Assert.assertEquals(1, catchedMessages.size());
-    Assert.assertEquals("§cError: Player not found", catchedMessages.get(0));
+    List<String> caughtMessages = sender.getCaughtMessages();
+    Assert.assertEquals(1, caughtMessages.size());
+    Assert.assertEquals("§cError: Player not found", caughtMessages.get(0));
   }
 
   @Test
   public void testWithOtherPlayer() {
     bridgeCommand.execute(sender, "test", new String[] {"MrIvanPlays", "0", "hello"});
 
-    List<String> catchedMessages = sender.getCatchedMessages();
-    Assert.assertEquals(2, catchedMessages.size());
-    Assert.assertEquals("player name: MrIvanPlays", catchedMessages.get(0));
-    Assert.assertEquals("message: hello", catchedMessages.get(1));
+    List<String> caughtMessages = sender.getCaughtMessages();
+    Assert.assertEquals(2, caughtMessages.size());
+    Assert.assertEquals("player name: MrIvanPlays", caughtMessages.get(0));
+    Assert.assertEquals("message: hello", caughtMessages.get(1));
   }
 
   @Test
   public void testNoArgs() {
     bridgeCommand.execute(sender, "test", new String[0]);
 
-    List<String> catchedMessages = sender.getCatchedMessages();
-    Assert.assertEquals(1, catchedMessages.size());
-    Assert.assertEquals("§cUnknown command", catchedMessages.get(0));
+    List<String> caughtMessages = sender.getCaughtMessages();
+    Assert.assertEquals(1, caughtMessages.size());
+    Assert.assertEquals("§cUnknown command", caughtMessages.get(0));
   }
 
   @Test
@@ -110,22 +110,22 @@ public class BukkitBridgeCommandTest {
     String[] args = new String[] {"MrIvanPlays"};
     bridgeCommand.execute(sender, "test", args);
 
-    List<String> catchedMessages = sender.getCatchedMessages();
-    Assert.assertEquals(1, catchedMessages.size());
-    Assert.assertEquals("§cUnknown command", catchedMessages.get(0));
+    List<String> caughtMessages = sender.getCaughtMessages();
+    Assert.assertEquals(1, caughtMessages.size());
+    Assert.assertEquals("§cUnknown command", caughtMessages.get(0));
   }
 
   private static final class DummySender implements CommandSender {
 
-    private List<String> catchedMessages = new ArrayList<>();
+    private List<String> caughtMessages = new ArrayList<>();
 
     @Override
     public void sendMessage(String s) {
-      catchedMessages.add(s);
+      caughtMessages.add(s);
     }
 
-    public List<String> getCatchedMessages() {
-      return catchedMessages;
+    public List<String> getCaughtMessages() {
+      return caughtMessages;
     }
 
     @Override

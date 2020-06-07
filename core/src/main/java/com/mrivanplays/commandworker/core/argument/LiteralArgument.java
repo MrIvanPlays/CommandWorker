@@ -64,4 +64,15 @@ public final class LiteralArgument implements Argument {
   public List<Argument> getChildren() {
     return Collections.unmodifiableList(children);
   }
+
+  @Override
+  public String toString() {
+    return "LiteralArgument(name="
+        + name
+        + ", shouldExecuteCommand="
+        + shouldExecuteCommand
+        + ", children="
+        + children
+        + ")";
+  }
 }
