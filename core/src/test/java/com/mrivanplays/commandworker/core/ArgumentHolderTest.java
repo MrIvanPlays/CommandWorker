@@ -1,5 +1,6 @@
 package com.mrivanplays.commandworker.core;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mrivanplays.commandworker.core.argument.RequiredArgument;
 import com.mrivanplays.commandworker.core.argument.parser.ArgumentHolder;
@@ -23,5 +24,19 @@ public class ArgumentHolderTest {
     Assert.assertTrue(holder.isTyped("message"));
     Assert.assertEquals("hello", holder.getRawRequiredArgument("subcommand"));
     Assert.assertEquals("this is my message", holder.getRawRequiredArgument("message"));
+  }
+
+  @Test
+  public void testIsTypedExceptionCaught() {
+    LiteralNode structure =
+        LiteralNode.node()
+            .argument(
+                RequiredArgument.argument("myint", IntegerArgumentType.integer())
+                    .then(RequiredArgument.argument("message", StringArgumentType.greedyString())));
+
+    String input = "bbc this is my message";
+    ArgumentHolder holder = new ArgumentHolder(input, structure);
+
+    Assert.assertTrue(holder.isTyped("myint"));
   }
 }

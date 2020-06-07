@@ -225,7 +225,7 @@ public final class ArgumentHolder {
   }
 
   private boolean isTyped(ArgumentData argumentData) {
-    return argumentData != null && argumentData.getRawValue() != null;
+    return argumentData != null && (argumentData.getRawValue() != null || argumentData.getCommandSyntaxException() != null);
   }
 
   /**
