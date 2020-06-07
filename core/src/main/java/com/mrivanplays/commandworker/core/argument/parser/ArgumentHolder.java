@@ -190,9 +190,14 @@ public final class ArgumentHolder {
     for (ArgumentData data : argumentData) {
       if (isTyped(data)) {
         IndexRange indexRange = data.getIndex();
-        int compared =
-            indexRange.isRange() ? (indexRange.getEnd() + 1) : (indexRange.getIndex() + 1);
-        if (compared == size()) {
+        if (indexRange != null) {
+          int compared =
+              indexRange.isRange() ? (indexRange.getEnd() + 1) : (indexRange.getIndex() + 1);
+          if (compared == size()) {
+            argument = data.getArgument();
+            break;
+          }
+        } else {
           argument = data.getArgument();
           break;
         }
@@ -225,7 +230,8 @@ public final class ArgumentHolder {
   }
 
   private boolean isTyped(ArgumentData argumentData) {
-    return argumentData != null && (argumentData.getRawValue() != null || argumentData.getCommandSyntaxException() != null);
+    return argumentData != null
+        && (argumentData.getRawValue() != null || argumentData.getCommandSyntaxException() != null);
   }
 
   /**
