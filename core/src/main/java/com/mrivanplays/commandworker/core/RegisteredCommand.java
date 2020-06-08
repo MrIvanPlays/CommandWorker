@@ -1,6 +1,7 @@
 package com.mrivanplays.commandworker.core;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -21,7 +22,9 @@ public final class RegisteredCommand<S> {
     this.aliases = aliases;
     this.command = command;
     this.permissionChecker = permissionChecker;
-    this.commandStructure = command.createCommandStructure();
+    this.commandStructure =
+        Objects.requireNonNull(
+            command.createCommandStructure(), "command structure null for " + aliases[0]);
   }
 
   /**

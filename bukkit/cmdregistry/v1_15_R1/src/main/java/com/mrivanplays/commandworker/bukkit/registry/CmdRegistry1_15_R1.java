@@ -10,7 +10,6 @@ import com.mrivanplays.commandworker.core.RegisteredCommand;
 import com.mrivanplays.commandworker.core.argument.Argument;
 import com.mrivanplays.commandworker.core.argument.parser.ArgumentHolder;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 import net.minecraft.server.v1_15_R1.CommandListenerWrapper;
 import org.bukkit.Bukkit;
@@ -29,7 +28,6 @@ public class CmdRegistry1_15_R1 implements CmdRegistry {
               .requires(getBrigadierRequires(command.getPermissionCheckFunction()));
 
       LiteralNode node = command.getCommandStructure();
-      Objects.requireNonNull(node, "Completion node for alias " + alias + " is null.");
       if (node.getArguments().isEmpty()) {
         dispatcher.register(
             builder.executes(getBrigadierCommand(command.getCommand(), alias, node)));

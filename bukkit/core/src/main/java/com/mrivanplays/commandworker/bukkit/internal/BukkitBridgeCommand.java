@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -77,11 +76,10 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
       throws IllegalArgumentException {
     return args.length == 0
         ? Collections.emptyList()
-        : getCompletions(command.getCommandStructure(), args, alias);
+        : getCompletions(command.getCommandStructure(), args);
   }
 
-  private List<String> getCompletions(LiteralNode node, String[] args, String alias) {
-    Objects.requireNonNull(node, "Completion node for alias " + alias + " is null.");
+  private List<String> getCompletions(LiteralNode node, String[] args) {
     if (node.getArguments().isEmpty()) {
       return Collections.emptyList();
     }
