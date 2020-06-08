@@ -7,7 +7,7 @@
 A command framework using brigadier for minecraft
 
 Allows you to create such commands: (please keep in mind this is just an example)
-![image](https://img.mrivanplays.com/hYARA3qRri.gif)
+![image](https://img.mrivanplays.com/UIXBLjtUr9.gif)
 
 Documentation:
 - [bukkit](https://mrivanplays.com/javadocs/commandworker/bukkit/) - for bukkit specific things 
@@ -26,35 +26,55 @@ Sure, but keep in mind these examples are for the bukkit platform. You have to f
 you want for other platforms :)
 
 ```java
+import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
+import static com.mojang.brigadier.arguments.StringArgumentType.word;
+import static com.mrivanplays.commandworker.core.LiteralNode.node;
+import static com.mrivanplays.commandworker.core.argument.RequiredArgument.argument;
+
+import com.mojang.brigadier.LiteralMessage;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mrivanplays.commandworker.bukkit.BukkitCommand;
+import com.mrivanplays.commandworker.core.LiteralNode;
+import com.mrivanplays.commandworker.core.argument.parser.ArgumentHolder;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
 public class TellMeCommand implements BukkitCommand {
 
-    @Override
-    public boolean execute(CommandSender sender, String label, ArgumentHolder args) {
-        Player player = Bukkit.getPlayer(args.getRawRequiredArgument("player"));
-        if (player == null) {
-            sender.sendMessage("Error: Player not online.");
-            return true;
-        }
-        player.sendMessage(args.getRawRequiredArgument("message"));
-        // you could also use args.getRequiredArgument(String name, Class<?> argumentType),
-        // but for this example it's not necessary to use it
-        return true;
+  @Override
+  public boolean execute(CommandSender sender, String label, ArgumentHolder args)
+      throws CommandSyntaxException {
+    String playerName = args.getRequiredArgument("player", String.class);
+    Player player = Bukkit.getPlayer(playerName);
+    if (player == null) {
+      throw new SimpleCommandExceptionType(new LiteralMessage("Error: Player not online")).create();
     }
+    String message = args.getRequiredArgument("message", String.class);
+    player.sendMessage(sender.getName() + " sent you message: " + message);
+    return false;
+  }
 
-    @Override
-    public LiteralNode createCommandStructure() {
-        return LiteralNode.node()
-                .argument(RequiredArgument.argument("player", StringArgumentType.word())
-                        .markShouldNotExecuteCommand() // this makes the argument required
-                        .suggests(builder -> {
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                builder.suggest(player.getName());
-                            }
-                        })
-                        .then(RequiredArgument.argument("message", StringArgumentType.greedyString()))
-                );
-    }
+  @Override
+  public LiteralNode createCommandStructure() {
+    return node()
+        .argument(
+            argument("player", word())
+                .markShouldNotExecuteCommand() // this makes the argument required
+                .suggests(
+                    builder -> {
+                      String currentArgument = builder.getRemaining().toLowerCase();
+                      for (Player player : Bukkit.getOnlinePlayers()) {
+                        if (player.getName().toLowerCase().startsWith(currentArgument)) {
+                          builder.suggest(player.getName());
+                        }
+                      }
+                    })
+                .then(argument("message", greedyString())));
+  }
 }
+
 ```
 
 Registering command:
