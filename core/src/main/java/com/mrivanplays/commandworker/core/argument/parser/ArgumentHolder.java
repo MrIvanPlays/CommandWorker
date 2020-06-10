@@ -197,7 +197,7 @@ public final class ArgumentHolder {
             argument = data.getArgument();
             break;
           }
-        } else {
+        } else if (data.getCommandSyntaxException() != null) {
           argument = data.getArgument();
           break;
         }
@@ -240,9 +240,15 @@ public final class ArgumentHolder {
    * @param argumentName argument name
    * @return argument
    */
-  public String getRawRequiredArgument(String argumentName) {
+  public String getRawRequiredArgument(String argumentName) throws CommandSyntaxException {
     ArgumentData argumentData = argumentDataHolder.get(argumentName);
-    return argumentData == null ? null : argumentData.getRawValue();
+    if (argumentData == null) {
+      return null;
+    }
+    if (argumentData.getCommandSyntaxException() != null) {
+      throw argumentData.getCommandSyntaxException();
+    }
+    return argumentData.getRawValue();
   }
 
   /**

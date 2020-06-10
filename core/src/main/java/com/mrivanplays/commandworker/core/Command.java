@@ -1,6 +1,8 @@
 package com.mrivanplays.commandworker.core;
 
+import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mrivanplays.commandworker.core.argument.parser.ArgumentHolder;
 
 /**
@@ -27,4 +29,14 @@ public interface Command<S> {
    * @see LiteralNode
    */
   LiteralNode createCommandStructure();
+
+  /**
+   * Helper method for creating {@link CommandSyntaxException}s
+   *
+   * @param message message
+   * @return command syntax exception
+   */
+  default CommandSyntaxException syntaxException(String message) {
+    return new SimpleCommandExceptionType(new LiteralMessage(message)).create();
+  }
 }
