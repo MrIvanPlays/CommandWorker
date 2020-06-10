@@ -2,6 +2,7 @@ package com.mrivanplays.commandworker.core;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mrivanplays.commandworker.core.argument.RequiredArgument;
 import com.mrivanplays.commandworker.core.argument.parser.ArgumentHolder;
 import org.junit.Assert;
@@ -22,8 +23,12 @@ public class ArgumentHolderTest {
 
     Assert.assertTrue(holder.isTyped("subcommand"));
     Assert.assertTrue(holder.isTyped("message"));
-    Assert.assertEquals("hello", holder.getRawRequiredArgument("subcommand"));
-    Assert.assertEquals("this is my message", holder.getRawRequiredArgument("message"));
+    try {
+      Assert.assertEquals("hello", holder.getRawRequiredArgument("subcommand"));
+      Assert.assertEquals("this is my message", holder.getRawRequiredArgument("message"));
+    } catch (CommandSyntaxException e) {
+      Assert.fail();
+    }
   }
 
   @Test
