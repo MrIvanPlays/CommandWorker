@@ -1,6 +1,7 @@
 package com.mrivanplays.commandworker.bukkit.internal;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.IntegerSuggestion;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
@@ -13,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -21,6 +23,39 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class BukkitBridgeCommand extends org.bukkit.command.Command {
+
+  private static final Function<Suggestion, String> SUGGESTION_MAPPER =
+      (suggestion) -> {
+        if (suggestion instanceof IntegerSuggestion) {
+          return Integer.toString(((IntegerSuggestion) suggestion).getValue());
+        } else {
+          return suggestion.getText();
+        }
+      };
+  private static final BiFunction<String, Argument, Stream<String>> TO_SUGGESTIONS =
+      (lastArg, argument) -> {
+        if (argument.isLiteral()) {
+          return Stream.of(argument.getName());
+        } else {
+          SuggestionsBuilder builder = new SuggestionsBuilder(lastArg, 0);
+          if (argument.getSuggestionsConsumer() != null) {
+            argument.getSuggestionsConsumer().accept(builder);
+          } else {
+            if (argument.getArgumentType() == null) {
+              // why we check here? obviously a required argument's argument type should not be
+              // null!
+              // well, apparently the minecraft argument types would be null if this is even
+              // registered! and that's why we have to have an exception here, returning empty
+              // stream.
+              return Stream.empty();
+            }
+            CompletableFuture<Suggestions> suggestionsFuture =
+                argument.getArgumentType().listSuggestions(null, builder);
+            return suggestionsFuture.join().getList().stream().map(SUGGESTION_MAPPER);
+          }
+          return builder.build().getList().stream().map(SUGGESTION_MAPPER);
+        }
+      };
 
   private final RegisteredCommand<CommandSender> command;
 
@@ -31,6 +66,11 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
         "/" + aliases[0],
         Arrays.asList(Arrays.copyOfRange(aliases, 1, aliases.length)));
     this.command = command;
+  }
+
+  @Override
+  public boolean testPermissionSilent(CommandSender sender) {
+    return command.hasPermission(sender);
   }
 
   @Override
@@ -92,34 +132,10 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
     }
     List<String> completions = new ArrayList<>();
     Predicate<String> STARTS_WITH_LASTARG = it -> it.startsWith(lastArg);
-    Function<Argument, Stream<String>> TO_SUGGESTIONS =
-        argument -> {
-          if (argument.isLiteral()) {
-            return Stream.of(argument.getName());
-          } else {
-            SuggestionsBuilder builder = new SuggestionsBuilder(lastArg, 0);
-            if (argument.getSuggestionsConsumer() != null) {
-              argument.getSuggestionsConsumer().accept(builder);
-            } else {
-              if (argument.getArgumentType() == null) {
-                // why we check here? obviously a required argument's argument type should not be
-                // null!
-                // well, apparently the minecraft argument types would be null if this is even
-                // registered! and that's why we have to have an exception here, returning empty
-                // stream.
-                return Stream.empty();
-              }
-              CompletableFuture<Suggestions> suggestionsFuture =
-                  argument.getArgumentType().listSuggestions(null, builder);
-              return suggestionsFuture.join().getList().stream().map(Suggestion::getText);
-            }
-            return builder.build().getList().stream().map(Suggestion::getText);
-          }
-        };
     if (args.length == 1) {
       completions.addAll(
           node.getArguments().stream()
-              .flatMap(TO_SUGGESTIONS)
+              .flatMap(argument -> TO_SUGGESTIONS.apply(lastArg, argument))
               .filter(STARTS_WITH_LASTARG)
               .collect(Collectors.toList()));
     } else { // args.length > 1
@@ -131,7 +147,7 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
                 }
                 completions.addAll(
                     argument.getChildren().stream()
-                        .flatMap(TO_SUGGESTIONS)
+                        .flatMap(arg -> TO_SUGGESTIONS.apply(lastArg, argument))
                         .filter(STARTS_WITH_LASTARG)
                         .collect(Collectors.toList()));
               });
