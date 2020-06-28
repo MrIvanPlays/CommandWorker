@@ -46,6 +46,23 @@ public final class LiteralArgument implements Argument {
     return this;
   }
 
+  public LiteralArgument then(Argument... other) {
+    // We're not using Collection#addAll because this way we save memory
+    //noinspection ManualArrayToCollectionCopy
+    for (Argument arg : other) {
+      //noinspection UseBulkOperation
+      children.add(arg);
+    }
+    return this;
+  }
+
+  public LiteralArgument then(Iterable<Argument> iterable) {
+    for (Argument arg : iterable) {
+      children.add(arg);
+    }
+    return this;
+  }
+
   /**
    * @return this instance for chaining
    * @see Argument#shouldExecuteCommand()

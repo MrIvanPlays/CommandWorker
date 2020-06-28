@@ -63,6 +63,23 @@ public final class RequiredArgument<V> implements Argument {
     return this;
   }
 
+  public RequiredArgument<V> then(Argument... other) {
+    // We're not using Collection#addAll because it costs more memory than this way
+    //noinspection ManualArrayToCollectionCopy
+    for (Argument arg : other) {
+      //noinspection UseBulkOperation
+      children.add(arg);
+    }
+    return this;
+  }
+
+  public RequiredArgument<V> then(Iterable<Argument> iterable) {
+    for (Argument arg : iterable) {
+      children.add(arg);
+    }
+    return this;
+  }
+
   /**
    * Sets the {@link SuggestionsBuilder} modifications to get applied later.
    *
