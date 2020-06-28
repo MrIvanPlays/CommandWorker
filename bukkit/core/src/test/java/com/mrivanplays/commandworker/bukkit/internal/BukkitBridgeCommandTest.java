@@ -146,6 +146,11 @@ public class BukkitBridgeCommandTest {
     }
 
     @Override
+    public Spigot spigot() {
+      return null;
+    }
+
+    @Override
     public boolean isPermissionSet(String s) {
       return true;
     }
