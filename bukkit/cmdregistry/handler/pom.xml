@@ -17,8 +17,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.bukkit</groupId>
-      <artifactId>bukkit</artifactId>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot-api</artifactId>
       <version>1.13-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
@@ -49,6 +49,12 @@
     <dependency>
       <groupId>com.mrivanplays</groupId>
       <artifactId>commandworker-bukkit-cmdregistry-v1_15_R1</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.mrivanplays</groupId>
+      <artifactId>commandworker-bukkit-cmdregistry-v1_16_R1</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>

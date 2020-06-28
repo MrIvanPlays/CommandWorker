@@ -20,5 +20,12 @@
   <name>CommandWorker-Bukkit</name>
   <description>Bukkit implementation of the CommandWorker</description>
 
+  <repositories>
+    <repository>
+      <id>spigot-repo</id>
+      <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
 
 </project>

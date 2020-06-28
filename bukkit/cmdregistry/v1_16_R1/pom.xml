@@ -9,11 +9,11 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>commandworker-bukkit-cmdregistry-v1_13_R2</artifactId>
+  <artifactId>commandworker-bukkit-cmdregistry-v1_16_R1</artifactId>
   <version>1.0-SNAPSHOT</version>
 
-  <name>CommandWorker-Bukkit-CmdRegistry-v1_13_R2</name>
-  <description>v1_13_R2 implementation of the infile</description>
+  <name>CommandWorker-Bukkit-CmdRegistry-v1_16_R1</name>
+  <description>v1_16_R1 implementation of the infile</description>
 
   <dependencies>
     <dependency>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot</artifactId>
-      <version>1.13.2-R0.1-SNAPSHOT</version>
+      <version>1.16.1-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
