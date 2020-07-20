@@ -33,6 +33,7 @@ public final class ArgumentHolder {
   private final String input;
   private StringReader reader;
   private Map<String, ArgumentData> argumentDataHolder;
+  private LiteralNode commandStructure;
 
   public ArgumentHolder(String input, LiteralNode commandStructure) {
     this.input = input;
@@ -40,6 +41,7 @@ public final class ArgumentHolder {
     reader.setCursor(0);
     this.argumentDataHolder = new HashMap<>();
 
+    this.commandStructure = commandStructure;
     this.handleArguments(commandStructure.getArguments());
   }
 
@@ -299,5 +301,31 @@ public final class ArgumentHolder {
    */
   public String getInput() {
     return input;
+  }
+
+  /**
+   * Returns the command structure of the arguments held by this argument holder.
+   *
+   * @return command structure node
+   */
+  public LiteralNode getCommandStructure() {
+    return commandStructure;
+  }
+
+  /**
+   * @return argument usage
+   * @see LiteralNode#buildUsage()
+   */
+  public String buildUsage() {
+    return commandStructure.buildUsage();
+  }
+
+  /**
+   * @param alias command alias for which you want full command usage
+   * @return command usage
+   * @see LiteralNode#buildUsage(String)
+   */
+  public String buildUsage(String alias) {
+    return commandStructure.buildUsage(alias);
   }
 }

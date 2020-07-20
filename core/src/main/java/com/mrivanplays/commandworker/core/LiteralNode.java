@@ -3,7 +3,9 @@ package com.mrivanplays.commandworker.core;
 import com.mrivanplays.commandworker.core.argument.Argument;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -25,11 +27,13 @@ public final class LiteralNode {
   }
 
   private List<Argument> arguments;
+  private Map<Integer, StringBuilder> usageBuilders;
 
   private boolean shouldExecuteCommand = false;
 
   private LiteralNode() {
     this.arguments = new ArrayList<>();
+    this.usageBuilders = new HashMap<>();
   }
 
   /**
@@ -105,6 +109,66 @@ public final class LiteralNode {
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * Builds the argument usage.
+   *
+   * @return argument usage, or if no base arguments - empty string
+   */
+  public String buildUsage() {
+    if (arguments.isEmpty()) {
+      return "";
+    }
+    StringBuilder builder = new StringBuilder();
+    buildUsageFor(arguments, builder, true, -1);
+    return builder.toString();
+  }
+
+  /**
+   * Builds full command usage for the alias specified
+   *
+   * @param alias command alias for which you want full command usage
+   * @return command usage
+   */
+  public String buildUsage(String alias) {
+    String argumentUsage = buildUsage();
+    return "/" + alias + " " + argumentUsage;
+  }
+
+  private void buildUsageFor(
+      List<Argument> args, StringBuilder appendTo, boolean initial, int currentArg) {
+    if (!args.isEmpty()) {
+      if (!initial) {
+        appendTo.append(' ');
+      }
+    }
+    currentArg++;
+    for (int i = 0, len = args.size(); i < len; i++) {
+      boolean lastArg = (i + 1) == len;
+      Argument arg = args.get(i);
+      if (arg.isLiteral()) {
+        appendTo.append(arg.getName());
+      } else {
+        if (arg.shouldExecuteCommand()) {
+          appendTo.append('[');
+        }
+        appendTo.append('<').append(arg.getName()).append('>');
+        if (arg.shouldExecuteCommand()) {
+          appendTo.append(']');
+        }
+      }
+      if (!lastArg) {
+        appendTo.append("|");
+      }
+
+      StringBuilder child = usageBuilders.computeIfAbsent(currentArg, StringBuilder::new);
+      buildUsageFor(arg.getChildren(), child, false, currentArg + 1);
+      usageBuilders.replace(currentArg, child);
+      if (lastArg) {
+        appendTo.append(child);
+      }
+    }
   }
 
   @Override

@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -71,7 +68,7 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
     super(
         aliases[0],
         "",
-        "/" + aliases[0],
+        command.getCommandStructure().buildUsage(aliases[0]),
         Arrays.asList(Arrays.copyOfRange(aliases, 1, aliases.length)));
     this.command = command;
   }
