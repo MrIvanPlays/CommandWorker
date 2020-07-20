@@ -5,12 +5,11 @@
   <parent>
     <artifactId>commandworker-bukkit-cmdregistry</artifactId>
     <groupId>com.mrivanplays</groupId>
-    <version>dev-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>commandworker-bukkit-cmdregistry-infile</artifactId>
-  <version>1.0-SNAPSHOT</version>
 
   <name>CommandWorker-Bukkit-CmdRegistry-Infile</name>
   <description>The input file to implement</description>

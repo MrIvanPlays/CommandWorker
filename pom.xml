@@ -7,7 +7,7 @@
   <groupId>com.mrivanplays</groupId>
   <artifactId>commandworker-parent</artifactId>
   <packaging>pom</packaging>
-  <version>dev-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
   <modules>
     <module>core</module>
     <module>bukkit</module>

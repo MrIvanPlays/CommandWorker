@@ -32,10 +32,10 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
           return suggestion.getText();
         }
       };
-  private static final BiFunction<String, Argument, Stream<String>> TO_SUGGESTIONS =
+  private static final BiFunction<String, Argument, List<String>> TO_SUGGESTIONS =
       (lastArg, argument) -> {
         if (argument.isLiteral()) {
-          return Stream.of(argument.getName());
+          return Collections.singletonList(argument.getName());
         } else {
           SuggestionsBuilder builder = new SuggestionsBuilder(lastArg, 0);
           if (argument.getSuggestionsConsumer() != null) {
@@ -47,13 +47,21 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
               // well, apparently the minecraft argument types would be null if this is even
               // registered! and that's why we have to have an exception here, returning empty
               // stream.
-              return Stream.empty();
+              return Collections.emptyList();
             }
             CompletableFuture<Suggestions> suggestionsFuture =
                 argument.getArgumentType().listSuggestions(null, builder);
-            return suggestionsFuture.join().getList().stream().map(SUGGESTION_MAPPER);
+            List<String> ret = new ArrayList<>();
+            for (Suggestion suggestion : suggestionsFuture.join().getList()) {
+              ret.add(SUGGESTION_MAPPER.apply(suggestion));
+            }
+            return ret;
           }
-          return builder.build().getList().stream().map(SUGGESTION_MAPPER);
+          List<String> ret = new ArrayList<>();
+          for (Suggestion suggestion : builder.build().getList()) {
+            ret.add(SUGGESTION_MAPPER.apply(suggestion));
+          }
+          return ret;
         }
       };
 
@@ -131,13 +139,8 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
       previousArg = args[args.length - 2].toLowerCase();
     }
     List<String> completions = new ArrayList<>();
-    Predicate<String> STARTS_WITH_LASTARG = it -> it.startsWith(lastArg);
     if (args.length == 1) {
-      completions.addAll(
-          node.getArguments().stream()
-              .flatMap(argument -> TO_SUGGESTIONS.apply(lastArg, argument))
-              .filter(STARTS_WITH_LASTARG)
-              .collect(Collectors.toList()));
+      populateCompletions(node, lastArg, completions);
     } else { // args.length > 1
       node.getArgumentByName(previousArg)
           .ifPresent(
@@ -145,14 +148,23 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
                 if (argument.getChildren().isEmpty()) {
                   return;
                 }
-                completions.addAll(
-                    argument.getChildren().stream()
-                        .flatMap(arg -> TO_SUGGESTIONS.apply(lastArg, argument))
-                        .filter(STARTS_WITH_LASTARG)
-                        .collect(Collectors.toList()));
+                populateCompletions(node, lastArg, completions);
               });
     }
 
     return completions;
+  }
+
+  private void populateCompletions(LiteralNode node, String lastArg, List<String> completions) {
+    List<String> toAdd = new ArrayList<>();
+    for (Argument arg : node.getArguments()) {
+      List<String> suggestions = TO_SUGGESTIONS.apply(lastArg, arg);
+      for (String suggest : suggestions) {
+        if (suggest.startsWith(lastArg)) {
+          toAdd.add(suggest);
+        }
+      }
+    }
+    completions.addAll(toAdd);
   }
 }

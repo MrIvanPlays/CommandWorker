@@ -84,12 +84,15 @@ public final class LiteralNode {
   }
 
   private Optional<Argument> getArgumentByName0(List<Argument> args, String name) {
-    Optional<Argument> opt =
-        args.stream()
-            .filter(arg -> arg.getName().toLowerCase().equalsIgnoreCase(name.toLowerCase()))
-            .findFirst();
-    if (opt.isPresent()) {
-      return opt;
+    Argument first = null;
+    for (Argument arg : args) {
+      if (arg.getName().toLowerCase().equalsIgnoreCase(name.toLowerCase())) {
+        first = arg;
+        break;
+      }
+    }
+    if (first != null) {
+      return Optional.of(first);
     } else {
       for (Argument arg : args) {
         if (arg.getChildren().isEmpty()) {

@@ -1,10 +1,8 @@
 package com.mrivanplays.commandworker.core;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * Represents a manager of all the registered commands.
@@ -70,13 +68,18 @@ public interface CommandManager<S> {
    * @return <code>true</code> if aliases free, <code>false</code> otherwise
    */
   default boolean aliasesFree(List<RegisteredCommand<S>> commands, String[] aliases) {
-    return commands.stream()
-        .noneMatch(
-            command ->
-                Arrays.stream(aliases)
-                    .anyMatch(
-                        alias ->
-                            Arrays.stream(command.getAliases()).anyMatch(alias::equalsIgnoreCase)));
+    boolean ret = true;
+    for (RegisteredCommand<S> command : commands) {
+      for (String commandAlias : command.getAliases()) {
+        for (String givenAlias : aliases) {
+          if (commandAlias.equalsIgnoreCase(givenAlias)) {
+            ret = false;
+            break;
+          }
+        }
+      }
+    }
+    return ret;
   }
 
   /**
@@ -91,9 +94,12 @@ public interface CommandManager<S> {
     Objects.requireNonNull(fallbackPrefix, "fallbackPrefix");
     Objects.requireNonNull(aliases, "aliases");
 
-    return Arrays.stream(aliases)
-        .flatMap(alias -> Stream.of(alias, fallbackPrefix.toLowerCase() + ":" + alias))
-        .distinct()
-        .toArray(String[]::new);
+    String[] newAliases = new String[aliases.length * 2];
+    for (int i = 0, len = aliases.length; i < len; i++) {
+      String alias = aliases[i];
+      newAliases[i] = alias;
+      newAliases[i + (aliases.length - 1)] = fallbackPrefix.toLowerCase() + ":" + alias;
+    }
+    return newAliases;
   }
 }

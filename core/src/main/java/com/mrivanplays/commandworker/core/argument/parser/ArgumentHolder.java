@@ -49,11 +49,11 @@ public final class ArgumentHolder {
     }
     Map<Argument, Integer> newArgs = getRequiredArgs(arguments, -1);
     if (input.isEmpty()) {
-      newArgs.forEach(
-          (argument, pos) ->
-              argumentDataHolder.put(
-                  argument.getName(),
-                  ArgumentData.newArgumentData(null, argument, null, null, null)));
+      for (Map.Entry<Argument, Integer> args : newArgs.entrySet()) {
+        Argument arg = args.getKey();
+        argumentDataHolder.put(
+            arg.getName(), ArgumentData.newArgumentData(null, arg, null, null, null));
+      }
       return;
     }
     Set<Entry<Argument, Integer>> entrySet =
@@ -257,7 +257,14 @@ public final class ArgumentHolder {
    * @return length
    */
   public int size() {
-    return (int) argumentDataHolder.values().stream().filter(this::isTyped).count();
+    int size = 0;
+    Collection<ArgumentData> values = argumentDataHolder.values();
+    for (ArgumentData data : values) {
+      if (isTyped(data)) {
+        size++;
+      }
+    }
+    return size;
   }
 
   /**
@@ -266,6 +273,31 @@ public final class ArgumentHolder {
    * @return raw arguments
    */
   public String[] getRawArgs() {
-    return input.split(" ");
+    int rawArgsSizeInitialize = 0;
+    Collection<ArgumentData> values = argumentDataHolder.values();
+    for (ArgumentData data : values) {
+      if (data.getRawValue() != null) {
+        rawArgsSizeInitialize++;
+      }
+    }
+    if (rawArgsSizeInitialize == 0) {
+      return new String[0];
+    }
+    String[] ret = new String[rawArgsSizeInitialize];
+    int index = 0;
+    for (ArgumentData data : values) {
+      ret[index] = data.getRawValue();
+      index++;
+    }
+    return ret;
+  }
+
+  /**
+   * Returns the sender argument input.
+   *
+   * @return input
+   */
+  public String getInput() {
+    return input;
   }
 }
