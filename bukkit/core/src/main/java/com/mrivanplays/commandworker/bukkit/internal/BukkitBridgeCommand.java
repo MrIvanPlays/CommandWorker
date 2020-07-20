@@ -156,15 +156,15 @@ public class BukkitBridgeCommand extends org.bukkit.command.Command {
   }
 
   private void populateCompletions(LiteralNode node, String lastArg, List<String> completions) {
-    List<String> toAdd = new ArrayList<>();
     for (Argument arg : node.getArguments()) {
+      List<String> toAdd = new ArrayList<>();
       List<String> suggestions = TO_SUGGESTIONS.apply(lastArg, arg);
       for (String suggest : suggestions) {
         if (suggest.startsWith(lastArg)) {
           toAdd.add(suggest);
         }
       }
+      completions.addAll(toAdd);
     }
-    completions.addAll(toAdd);
   }
 }
