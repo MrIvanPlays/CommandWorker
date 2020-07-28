@@ -288,8 +288,10 @@ public final class ArgumentHolder {
     String[] ret = new String[rawArgsSizeInitialize];
     int index = 0;
     for (ArgumentData data : values) {
-      ret[index] = data.getRawValue();
-      index++;
+      if (data.getRawValue() != null) {
+        ret[index] = data.getRawValue();
+        index++;
+      }
     }
     return ret;
   }
