@@ -1,6 +1,5 @@
-package com.mrivanplays.commandworker.bukkit.registry;
+package com.mrivanplays.commandworker.velocity.internal;
 
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -9,23 +8,20 @@ import com.mrivanplays.commandworker.core.LiteralNode;
 import com.mrivanplays.commandworker.core.RegisteredCommand;
 import com.mrivanplays.commandworker.core.argument.Argument;
 import com.mrivanplays.commandworker.core.argument.parser.ArgumentHolder;
+import com.velocitypowered.api.command.BrigadierCommand;
+import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.proxy.ProxyServer;
 import java.util.List;
 import java.util.function.Predicate;
-import net.minecraft.server.v1_14_R1.CommandListenerWrapper;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_14_R1.CraftServer;
 
-public class CmdRegistry1_14_R1 implements CmdRegistry {
+public class BrigadierCommandRegistration implements CommandRegistration {
 
   @Override
-  public void register(RegisteredCommand<CommandSender> command) {
-    CommandDispatcher<CommandListenerWrapper> dispatcher =
-        ((CraftServer) Bukkit.getServer()).getServer().commandDispatcher.a();
+  public void register(ProxyServer proxy, RegisteredCommand<CommandSource> command) {
     for (String alias : command.getAliases()) {
-      LiteralArgumentBuilder<CommandListenerWrapper> builder =
-          LiteralArgumentBuilder.<CommandListenerWrapper>literal(alias)
-              .requires(getBrigadierRequires(command.getPermissionCheckFunction()));
+      LiteralArgumentBuilder<CommandSource> builder =
+          LiteralArgumentBuilder.<CommandSource>literal(alias)
+              .requires(command.getPermissionCheckFunction());
 
       LiteralNode node = command.getCommandStructure();
       if (node.shouldExecuteCommand()) {
@@ -33,13 +29,12 @@ public class CmdRegistry1_14_R1 implements CmdRegistry {
       }
 
       if (node.getArguments().isEmpty()) {
-        dispatcher.register(
-            builder.executes(getBrigadierCommand(command.getCommand(), alias, node)));
+        proxy.getCommandManager().register(new BrigadierCommand(builder.build()));
         continue;
       }
 
-      LiteralArgumentBuilder<CommandListenerWrapper> filledBuilder =
-          (LiteralArgumentBuilder<CommandListenerWrapper>)
+      LiteralArgumentBuilder<CommandSource> filledBuilder =
+          (LiteralArgumentBuilder<CommandSource>)
               handleArguments(
                   command.getCommand(),
                   alias,
@@ -48,33 +43,28 @@ public class CmdRegistry1_14_R1 implements CmdRegistry {
                   node,
                   builder);
 
-      dispatcher.register(filledBuilder);
+      proxy.getCommandManager().register(new BrigadierCommand(filledBuilder.build()));
     }
   }
 
-  private com.mojang.brigadier.Command<CommandListenerWrapper> getBrigadierCommand(
-      Command<CommandSender> command, String alias, LiteralNode structure) {
+  private com.mojang.brigadier.Command<CommandSource> getBrigadierCommand(
+      Command<CommandSource> command, String alias, LiteralNode structure) {
     return context ->
         command.execute(
-                context.getSource().getBukkitSender(),
+                context.getSource(),
                 alias,
                 new ArgumentHolder(context.getInput().replace(alias + " ", ""), structure))
             ? 1
             : 0;
   }
 
-  private Predicate<CommandListenerWrapper> getBrigadierRequires(
-      Predicate<CommandSender> requires) {
-    return (wrapper) -> requires.test(wrapper.getBukkitSender());
-  }
-
-  private ArgumentBuilder<CommandListenerWrapper, ?> handleArguments(
-      Command<CommandSender> command,
+  private ArgumentBuilder<CommandSource, ?> handleArguments(
+      Command<CommandSource> command,
       String alias,
       List<Argument> arguments,
-      Predicate<CommandSender> permissionCheck,
+      Predicate<CommandSource> permissionCheck,
       LiteralNode commandStructure,
-      ArgumentBuilder<CommandListenerWrapper, ?> builder) {
+      ArgumentBuilder<CommandSource, ?> builder) {
     if (arguments.isEmpty()) {
       return builder;
     }
@@ -93,30 +83,30 @@ public class CmdRegistry1_14_R1 implements CmdRegistry {
     return builder;
   }
 
-  private LiteralArgumentBuilder<CommandListenerWrapper> getLiteral(
-      Command<CommandSender> command,
+  private LiteralArgumentBuilder<CommandSource> getLiteral(
+      Command<CommandSource> command,
       String commandAlias,
       Argument argument,
-      Predicate<CommandSender> permissionCheck,
+      Predicate<CommandSource> permissionCheck,
       LiteralNode commandStructure) {
-    LiteralArgumentBuilder<CommandListenerWrapper> builder =
+    LiteralArgumentBuilder<CommandSource> builder =
         LiteralArgumentBuilder.literal(argument.getName());
-    builder.requires(getBrigadierRequires(permissionCheck));
+    builder.requires(permissionCheck);
     if (argument.shouldExecuteCommand()) {
       builder.executes(getBrigadierCommand(command, commandAlias, commandStructure));
     }
     return builder;
   }
 
-  private RequiredArgumentBuilder<CommandListenerWrapper, Object> getRequired(
-      Command<CommandSender> command,
+  private RequiredArgumentBuilder<CommandSource, Object> getRequired(
+      Command<CommandSource> command,
       String commandAlias,
       Argument argument,
-      Predicate<CommandSender> permissionCheck,
+      Predicate<CommandSource> permissionCheck,
       LiteralNode commandStructure) {
-    RequiredArgumentBuilder<CommandListenerWrapper, Object> required =
+    RequiredArgumentBuilder<CommandSource, Object> required =
         RequiredArgumentBuilder.argument(argument.getName(), argument.getArgumentType());
-    required.requires(getBrigadierRequires(permissionCheck));
+    required.requires(permissionCheck);
     if (argument.shouldExecuteCommand()) {
       required.executes(getBrigadierCommand(command, commandAlias, commandStructure));
     }

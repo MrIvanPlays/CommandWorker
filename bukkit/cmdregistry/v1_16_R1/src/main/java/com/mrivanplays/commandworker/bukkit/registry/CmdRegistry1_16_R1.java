@@ -28,14 +28,14 @@ public class CmdRegistry1_16_R1 implements CmdRegistry {
               .requires(getBrigadierRequires(command.getPermissionCheckFunction()));
 
       LiteralNode node = command.getCommandStructure();
+      if (node.shouldExecuteCommand()) {
+        builder.executes(getBrigadierCommand(command.getCommand(), alias, node));
+      }
+
       if (node.getArguments().isEmpty()) {
         dispatcher.register(
             builder.executes(getBrigadierCommand(command.getCommand(), alias, node)));
-        return;
-      }
-
-      if (node.shouldExecuteCommand()) {
-        builder.executes(getBrigadierCommand(command.getCommand(), alias, node));
+        continue;
       }
 
       LiteralArgumentBuilder<CommandListenerWrapper> filledBuilder =
