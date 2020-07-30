@@ -4,6 +4,8 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents wrapped argument, which would get wrapped in a brigadier one later when command is
@@ -16,6 +18,7 @@ public interface Argument {
    *
    * @return name
    */
+  @NotNull
   String getName();
 
   /**
@@ -27,6 +30,7 @@ public interface Argument {
    * @param <T> the type held by the argument type.
    * @return argument type
    */
+  @Nullable
   default <T> ArgumentType<T> getArgumentType() {
     return null;
   }
@@ -49,6 +53,7 @@ public interface Argument {
    *
    * @return suggestions consumer
    */
+  @Nullable
   default Consumer<SuggestionsBuilder> getSuggestionsConsumer() {
     return null;
   }
@@ -67,5 +72,6 @@ public interface Argument {
    *
    * @return children
    */
+  @NotNull
   List<Argument> getChildren();
 }

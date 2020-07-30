@@ -5,7 +5,10 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents required argument. This is a wrapper for brigadier's RequiredArgumentType, wrapped for
@@ -42,13 +45,13 @@ public final class RequiredArgument<V> implements Argument {
   }
 
   @Override
-  public String getName() {
+  public @NotNull String getName() {
     return name;
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T> ArgumentType<T> getArgumentType() {
+  public @NotNull <T> ArgumentType<T> getArgumentType() {
     return (ArgumentType<T>) type;
   }
 
@@ -58,12 +61,16 @@ public final class RequiredArgument<V> implements Argument {
    * @param child child
    * @return this instance for chaining
    */
-  public RequiredArgument<V> then(Argument child) {
+  @NotNull
+  public RequiredArgument<V> then(@NotNull Argument child) {
+    Objects.requireNonNull(child, "child");
     children.add(child);
     return this;
   }
 
-  public RequiredArgument<V> then(Argument... other) {
+  @NotNull
+  public RequiredArgument<V> then(@NotNull Argument... other) {
+    Objects.requireNonNull(other, "other");
     // We're not using Collection#addAll because it costs more memory than this way
     //noinspection ManualArrayToCollectionCopy
     for (Argument arg : other) {
@@ -73,7 +80,9 @@ public final class RequiredArgument<V> implements Argument {
     return this;
   }
 
-  public RequiredArgument<V> then(Iterable<Argument> iterable) {
+  @NotNull
+  public RequiredArgument<V> then(@NotNull Iterable<Argument> iterable) {
+    Objects.requireNonNull(iterable, "iterable");
     for (Argument arg : iterable) {
       children.add(arg);
     }
@@ -89,7 +98,8 @@ public final class RequiredArgument<V> implements Argument {
    * @param suggestionsConsumer suggestions consumer
    * @return this instance for chaining
    */
-  public RequiredArgument<V> suggests(Consumer<SuggestionsBuilder> suggestionsConsumer) {
+  @NotNull
+  public RequiredArgument<V> suggests(@Nullable Consumer<SuggestionsBuilder> suggestionsConsumer) {
     this.suggestionsConsumer = suggestionsConsumer;
     return this;
   }
@@ -98,13 +108,14 @@ public final class RequiredArgument<V> implements Argument {
    * @return this instance for chaining
    * @see Argument#shouldExecuteCommand()
    */
+  @NotNull
   public RequiredArgument<V> markShouldNotExecuteCommand() {
     this.shouldExecuteCommand = false;
     return this;
   }
 
   @Override
-  public Consumer<SuggestionsBuilder> getSuggestionsConsumer() {
+  public @Nullable Consumer<SuggestionsBuilder> getSuggestionsConsumer() {
     return suggestionsConsumer;
   }
 
@@ -114,7 +125,7 @@ public final class RequiredArgument<V> implements Argument {
   }
 
   @Override
-  public List<Argument> getChildren() {
+  public @NotNull List<Argument> getChildren() {
     return Collections.unmodifiableList(children);
   }
 

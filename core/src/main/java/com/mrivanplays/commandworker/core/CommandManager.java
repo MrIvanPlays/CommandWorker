@@ -3,6 +3,8 @@ package com.mrivanplays.commandworker.core;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a manager of all the registered commands.
@@ -18,7 +20,7 @@ public interface CommandManager<S> {
    * @param command the command you want to register
    * @param aliases aliases
    */
-  default void register(Command<S> command, String... aliases) {
+  default void register(@NotNull Command<S> command, @NotNull String... aliases) {
     register(command, (sender) -> true, aliases);
   }
 
@@ -30,7 +32,7 @@ public interface CommandManager<S> {
    * @param permissionCheck permission check
    * @param aliases aliases
    */
-  void register(Command<S> command, Predicate<S> permissionCheck, String... aliases);
+  void register(@NotNull Command<S> command, @Nullable Predicate<S> permissionCheck, @NotNull String... aliases);
 
   /**
    * Returns whether or not brigadier is supported for this command manager.
@@ -58,6 +60,7 @@ public interface CommandManager<S> {
    *
    * @return registered commands
    */
+  @NotNull
   List<RegisteredCommand<S>> getRegisteredCommands();
 
   /**
@@ -67,7 +70,9 @@ public interface CommandManager<S> {
    * @param aliases aliases
    * @return <code>true</code> if aliases free, <code>false</code> otherwise
    */
-  default boolean aliasesFree(List<RegisteredCommand<S>> commands, String[] aliases) {
+  default boolean aliasesFree(@NotNull List<RegisteredCommand<S>> commands, @NotNull String[] aliases) {
+    Objects.requireNonNull(commands, "commands");
+    Objects.requireNonNull(aliases, "aliases");
     boolean ret = true;
     for (RegisteredCommand<S> command : commands) {
       for (String commandAlias : command.getAliases()) {
@@ -90,7 +95,8 @@ public interface CommandManager<S> {
    * @param aliases normally specified aliases
    * @return all the aliases
    */
-  static String[] getAliases(String fallbackPrefix, String... aliases) {
+  @NotNull
+  static String[] getAliases(@NotNull String fallbackPrefix, @NotNull String... aliases) {
     Objects.requireNonNull(fallbackPrefix, "fallbackPrefix");
     Objects.requireNonNull(aliases, "aliases");
 

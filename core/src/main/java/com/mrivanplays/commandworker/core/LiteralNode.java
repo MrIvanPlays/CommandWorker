@@ -10,10 +10,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a literal node, holder of the base sub command completions. Usage example:
@@ -109,7 +112,9 @@ public final class LiteralNode {
    * @return this instance for chaining
    * @see Argument
    */
-  public LiteralNode argument(Argument argument) {
+  @NotNull
+  public LiteralNode argument(@NotNull Argument argument) {
+    Objects.requireNonNull(argument, "argument");
     arguments.add(argument);
     return this;
   }
@@ -118,6 +123,7 @@ public final class LiteralNode {
    * @return this instance for chaining
    * @see #shouldExecuteCommand()
    */
+  @NotNull
   public LiteralNode markShouldExecuteCommand() {
     this.shouldExecuteCommand = true;
     return this;
@@ -128,6 +134,7 @@ public final class LiteralNode {
    *
    * @return arguments
    */
+  @NotNull
   public List<Argument> getArguments() {
     return Collections.unmodifiableList(arguments);
   }
@@ -149,7 +156,8 @@ public final class LiteralNode {
    * @param name name
    * @return argument if present, empty optional else.
    */
-  public Optional<Argument> getArgumentByName(String name) {
+  public Optional<Argument> getArgumentByName(@NotNull String name) {
+    Objects.requireNonNull(name, "name");
     return getArgumentByName0(arguments, name);
   }
 
@@ -183,6 +191,7 @@ public final class LiteralNode {
    * @param index the index for which you need the arguments
    * @return arguments by index
    */
+  @NotNull
   public List<Argument> getArgumentsByIndex(int index) {
     return getArgumentsByIndex0(arguments, index);
   }
@@ -210,6 +219,7 @@ public final class LiteralNode {
    *
    * @return argument usage, or if no base arguments - empty string
    */
+  @NotNull
   public String buildUsage() {
     if (arguments.isEmpty()) {
       return "";
@@ -225,9 +235,10 @@ public final class LiteralNode {
    * @param alias command alias for which you want full command usage
    * @return command usage
    */
-  public String buildUsage(String alias) {
+  @NotNull
+  public String buildUsage(@Nullable String alias) {
     String argumentUsage = buildUsage();
-    return "/" + alias + " " + argumentUsage;
+    return alias != null ? "/" + alias + " " + argumentUsage : argumentUsage;
   }
 
   private void buildUsageFor(
@@ -272,7 +283,9 @@ public final class LiteralNode {
    * @param args args for which you need string list completion
    * @return string list completion
    */
-  public List<String> completeToStringList(String[] args) {
+  @NotNull
+  public List<String> completeToStringList(@NotNull String[] args) {
+    Objects.requireNonNull(args, "args");
     if (arguments.isEmpty() || args.length == 0) {
       return Collections.emptyList();
     }

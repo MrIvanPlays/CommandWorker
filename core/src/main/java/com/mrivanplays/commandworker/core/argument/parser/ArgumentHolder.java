@@ -11,8 +11,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Represents a holder of arguments. */
 public final class ArgumentHolder {
@@ -150,7 +153,10 @@ public final class ArgumentHolder {
    * @param <V> value type
    * @return value
    */
-  public <V> V getRequiredArgument(String name, Class<V> type) throws CommandSyntaxException {
+  @Nullable
+  public <V> V getRequiredArgument(@NotNull String name, @NotNull Class<V> type) throws CommandSyntaxException {
+    Objects.requireNonNull(name, "name");
+    Objects.requireNonNull(type, "type");
     ArgumentData argumentData = argumentDataHolder.get(name);
     if (argumentData != null) {
       if (argumentData.getCommandSyntaxException() != null) {
@@ -186,6 +192,7 @@ public final class ArgumentHolder {
    *
    * @return last argument
    */
+  @Nullable
   public Argument getLastArgument() {
     Collection<ArgumentData> argumentData = argumentDataHolder.values();
     Argument argument = null;
@@ -215,6 +222,7 @@ public final class ArgumentHolder {
    * @param argumentName argument name
    * @return range if present
    */
+  @Nullable
   public IndexRange getArgumentIndex(String argumentName) {
     ArgumentData data = argumentDataHolder.get(argumentName);
     return data != null ? data.getIndex() : null;
@@ -227,7 +235,8 @@ public final class ArgumentHolder {
    * @param argumentName the argument's name that you want to check if has value or not.
    * @return <code>true</code> if typed, <code>false</code> otherwise
    */
-  public boolean isTyped(String argumentName) {
+  public boolean isTyped(@NotNull String argumentName) {
+    Objects.requireNonNull(argumentName, "argumentName");
     return isTyped(argumentDataHolder.get(argumentName));
   }
 
@@ -242,7 +251,9 @@ public final class ArgumentHolder {
    * @param argumentName argument name
    * @return argument
    */
-  public String getRawRequiredArgument(String argumentName) throws CommandSyntaxException {
+  @Nullable
+  public String getRawRequiredArgument(@NotNull String argumentName) throws CommandSyntaxException {
+    Objects.requireNonNull(argumentName, "argumentName");
     ArgumentData argumentData = argumentDataHolder.get(argumentName);
     if (argumentData == null) {
       return null;
@@ -274,6 +285,7 @@ public final class ArgumentHolder {
    *
    * @return raw arguments
    */
+  @NotNull
   public String[] getRawArgs() {
     int rawArgsSizeInitialize = 0;
     Collection<ArgumentData> values = argumentDataHolder.values();
@@ -301,6 +313,7 @@ public final class ArgumentHolder {
    *
    * @return input
    */
+  @NotNull
   public String getInput() {
     return input;
   }
@@ -310,6 +323,7 @@ public final class ArgumentHolder {
    *
    * @return command structure node
    */
+  @NotNull
   public LiteralNode getCommandStructure() {
     return commandStructure;
   }
@@ -318,6 +332,7 @@ public final class ArgumentHolder {
    * @return argument usage
    * @see LiteralNode#buildUsage()
    */
+  @NotNull
   public String buildUsage() {
     return commandStructure.buildUsage();
   }
@@ -327,6 +342,7 @@ public final class ArgumentHolder {
    * @return command usage
    * @see LiteralNode#buildUsage(String)
    */
+  @NotNull
   public String buildUsage(String alias) {
     return commandStructure.buildUsage(alias);
   }

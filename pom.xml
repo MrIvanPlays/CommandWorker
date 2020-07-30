@@ -47,6 +47,15 @@
     </repository>
   </repositories>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.jetbrains</groupId>
+      <artifactId>annotations</artifactId>
+      <version>19.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
   <distributionManagement>
     <repository>
       <id>ivan-releases</id>

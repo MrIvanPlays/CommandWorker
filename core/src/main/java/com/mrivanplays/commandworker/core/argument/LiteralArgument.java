@@ -3,6 +3,8 @@ package com.mrivanplays.commandworker.core.argument;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents literal argument. This is a wrapper for brigadier's LiteralArgumentBuilder, wrapped
@@ -31,7 +33,7 @@ public final class LiteralArgument implements Argument {
   }
 
   @Override
-  public String getName() {
+  public @NotNull String getName() {
     return name;
   }
 
@@ -41,12 +43,16 @@ public final class LiteralArgument implements Argument {
    * @param other child
    * @return this instance for chaining
    */
-  public LiteralArgument then(Argument other) {
+  @NotNull
+  public LiteralArgument then(@NotNull Argument other) {
+    Objects.requireNonNull(other, "other");
     children.add(other);
     return this;
   }
 
-  public LiteralArgument then(Argument... other) {
+  @NotNull
+  public LiteralArgument then(@NotNull Argument... other) {
+    Objects.requireNonNull(other, "other");
     // We're not using Collection#addAll because this way we save memory
     //noinspection ManualArrayToCollectionCopy
     for (Argument arg : other) {
@@ -56,7 +62,9 @@ public final class LiteralArgument implements Argument {
     return this;
   }
 
-  public LiteralArgument then(Iterable<Argument> iterable) {
+  @NotNull
+  public LiteralArgument then(@NotNull Iterable<Argument> iterable) {
+    Objects.requireNonNull(iterable, "iterable");
     for (Argument arg : iterable) {
       children.add(arg);
     }
@@ -67,6 +75,7 @@ public final class LiteralArgument implements Argument {
    * @return this instance for chaining
    * @see Argument#shouldExecuteCommand()
    */
+  @NotNull
   public LiteralArgument markShouldExecuteCommand() {
     this.shouldExecuteCommand = true;
     return this;
@@ -78,7 +87,7 @@ public final class LiteralArgument implements Argument {
   }
 
   @Override
-  public List<Argument> getChildren() {
+  public @NotNull List<Argument> getChildren() {
     return Collections.unmodifiableList(children);
   }
 

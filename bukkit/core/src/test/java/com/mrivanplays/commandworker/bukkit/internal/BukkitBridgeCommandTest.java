@@ -20,6 +20,7 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,7 +52,7 @@ public class BukkitBridgeCommandTest {
           }
 
           @Override
-          public LiteralNode createCommandStructure() {
+          public @NotNull LiteralNode createCommandStructure() {
             return LiteralNode.node()
                 .argument(
                     RequiredArgument.argument("player", StringArgumentType.word())

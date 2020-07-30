@@ -3,6 +3,7 @@ package com.mrivanplays.commandworker.core;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a command which is registered.
@@ -33,7 +34,8 @@ public final class RegisteredCommand<S> {
    * @param sender sender
    * @return <code>true</code> if has, <code>false</code> otherwise
    */
-  public boolean hasPermission(S sender) {
+  public boolean hasPermission(@NotNull S sender) {
+    Objects.requireNonNull(sender, "sender");
     return permissionChecker.test(sender);
   }
 
@@ -42,6 +44,7 @@ public final class RegisteredCommand<S> {
    *
    * @return permission checker
    */
+  @NotNull
   public Predicate<S> getPermissionCheckFunction() {
     return permissionChecker;
   }
@@ -52,6 +55,7 @@ public final class RegisteredCommand<S> {
    *
    * @return command structure node
    */
+  @NotNull
   public LiteralNode getCommandStructure() {
     return commandStructure;
   }
@@ -61,6 +65,7 @@ public final class RegisteredCommand<S> {
    *
    * @return aliases
    */
+  @NotNull
   public String[] getAliases() {
     return aliases;
   }
@@ -70,6 +75,7 @@ public final class RegisteredCommand<S> {
    *
    * @return command
    */
+  @NotNull
   public Command<S> getCommand() {
     return command;
   }

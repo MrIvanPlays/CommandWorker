@@ -17,6 +17,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class BukkitCommandManager implements CommandManager<CommandSender> {
 
@@ -36,7 +38,9 @@ public class BukkitCommandManager implements CommandManager<CommandSender> {
 
   @Override
   public void register(
-      Command<CommandSender> command, Predicate<CommandSender> permissionCheck, String... aliases) {
+      @NotNull Command<CommandSender> command,
+      @Nullable Predicate<CommandSender> permissionCheck,
+      @NotNull String... aliases) {
     Objects.requireNonNull(command, "command");
     if (permissionCheck == null) {
       permissionCheck = (sender) -> true;
@@ -88,6 +92,7 @@ public class BukkitCommandManager implements CommandManager<CommandSender> {
   }
 
   @Override
+  @NotNull
   public List<RegisteredCommand<CommandSender>> getRegisteredCommands() {
     return Collections.unmodifiableList(registeredCommands);
   }
