@@ -137,7 +137,7 @@ Maven:
 
     <dependency>
         <groupId>com.mrivanplays</groupId>
-        <!-- Platforms: bukkit-core -->
+        <!-- Platforms: bukkit-core, velocity -->
         <artifactId>commandworker-(platform)</artifactId> <!-- Replace platform -->
         <version>VERSION</version> <!-- Replace with latest version -->
         <scope>compile</scope>
