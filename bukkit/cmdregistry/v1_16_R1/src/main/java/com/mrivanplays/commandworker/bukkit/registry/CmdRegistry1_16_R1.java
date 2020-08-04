@@ -28,7 +28,6 @@ public class CmdRegistry1_16_R1 implements CmdRegistry {
               .requires(getBrigadierRequires(command.getPermissionCheckFunction()));
 
       LiteralNode node = command.getCommandStructure();
-      builder.requires(getBrigadierRequires(command.getPermissionCheckFunction()));
       if (node.shouldExecuteCommand()) {
         builder.executes(getBrigadierCommand(command.getCommand(), alias, node));
       }

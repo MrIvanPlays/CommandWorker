@@ -24,7 +24,6 @@ public class BrigadierCommandRegistration implements CommandRegistration {
               .requires(command.getPermissionCheckFunction());
 
       LiteralNode node = command.getCommandStructure();
-      builder.requires(command.getPermissionCheckFunction());
       if (node.shouldExecuteCommand()) {
         builder.executes(getBrigadierCommand(command.getCommand(), alias, node));
       }
