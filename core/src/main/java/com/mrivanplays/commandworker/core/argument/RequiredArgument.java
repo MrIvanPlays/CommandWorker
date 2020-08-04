@@ -26,7 +26,8 @@ public final class RequiredArgument<V> implements Argument {
    * @param <T> type of the argument type
    * @return required argument
    */
-  public static <T> RequiredArgument<T> argument(String name, ArgumentType<T> type) {
+  @NotNull
+  public static <T> RequiredArgument<T> argument(@NotNull String name, @NotNull ArgumentType<T> type) {
     return new RequiredArgument<>(name, type);
   }
 
@@ -38,9 +39,9 @@ public final class RequiredArgument<V> implements Argument {
 
   private Consumer<SuggestionsBuilder> suggestionsConsumer;
 
-  private RequiredArgument(String name, ArgumentType<V> type) {
-    this.name = name;
-    this.type = type;
+  private RequiredArgument(@NotNull String name, @NotNull ArgumentType<V> type) {
+    this.name = Objects.requireNonNull(name, "name");
+    this.type = Objects.requireNonNull(type, "type");
     this.children = new ArrayList<>();
   }
 

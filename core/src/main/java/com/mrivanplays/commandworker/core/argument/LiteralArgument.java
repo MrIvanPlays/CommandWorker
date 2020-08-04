@@ -18,7 +18,8 @@ public final class LiteralArgument implements Argument {
    * @param name completion value you see ingame.
    * @return literal argument
    */
-  public static LiteralArgument literal(String name) {
+  @NotNull
+  public static LiteralArgument literal(@NotNull String name) {
     return new LiteralArgument(name);
   }
 
@@ -27,8 +28,8 @@ public final class LiteralArgument implements Argument {
 
   private boolean shouldExecuteCommand = false;
 
-  private LiteralArgument(String name) {
-    this.name = name;
+  private LiteralArgument(@NotNull String name) {
+    this.name = Objects.requireNonNull(name, "name");
     this.children = new ArrayList<>();
   }
 

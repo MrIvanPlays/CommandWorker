@@ -223,7 +223,8 @@ public final class ArgumentHolder {
    * @return range if present
    */
   @Nullable
-  public IndexRange getArgumentIndex(String argumentName) {
+  public IndexRange getArgumentIndex(@NotNull String argumentName) {
+    Objects.requireNonNull(argumentName, "argumentName");
     ArgumentData data = argumentDataHolder.get(argumentName);
     return data != null ? data.getIndex() : null;
   }
@@ -343,7 +344,7 @@ public final class ArgumentHolder {
    * @see LiteralNode#buildUsage(String)
    */
   @NotNull
-  public String buildUsage(String alias) {
+  public String buildUsage(@Nullable String alias) {
     return commandStructure.buildUsage(alias);
   }
 }

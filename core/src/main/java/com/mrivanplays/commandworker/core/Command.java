@@ -5,7 +5,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mrivanplays.commandworker.core.argument.parser.ArgumentHolder;
 import java.util.Objects;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,7 +45,7 @@ public interface Command<S> {
    */
   @NotNull
   default CommandSyntaxException syntaxException(@NotNull String message) {
-    Objects.requireNonNull("message", message);
+    Objects.requireNonNull(message, "message");
     return new SimpleCommandExceptionType(new LiteralMessage(message)).create();
   }
 }

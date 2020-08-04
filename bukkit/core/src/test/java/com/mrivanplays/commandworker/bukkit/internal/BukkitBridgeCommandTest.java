@@ -39,7 +39,8 @@ public class BukkitBridgeCommandTest {
     dummyCommand =
         new Command<CommandSender>() {
           @Override
-          public boolean execute(CommandSender sender, String label, ArgumentHolder args)
+          public boolean execute(
+              @NotNull CommandSender sender, @NotNull String label, @NotNull ArgumentHolder args)
               throws CommandSyntaxException {
             String player = args.getRawRequiredArgument("player");
             if (player.equalsIgnoreCase("DummyPlayer")) {
@@ -80,7 +81,7 @@ public class BukkitBridgeCommandTest {
 
   @Test
   public void testWithDummyPlayer() {
-    bridgeCommand.execute(sender, "test", new String[]{"DummyPlayer", "1", "a"});
+    bridgeCommand.execute(sender, "test", new String[] {"DummyPlayer", "1", "a"});
 
     List<String> caughtMessages = sender.getCaughtMessages();
     Assert.assertEquals(1, caughtMessages.size());
