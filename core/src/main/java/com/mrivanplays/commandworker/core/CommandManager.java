@@ -104,7 +104,7 @@ public interface CommandManager<S> {
     for (int i = 0, len = aliases.length; i < len; i++) {
       String alias = aliases[i];
       newAliases[i] = alias;
-      newAliases[i + (aliases.length - 1)] = fallbackPrefix.toLowerCase() + ":" + alias;
+      newAliases[i + aliases.length] = fallbackPrefix.toLowerCase() + ":" + alias;
     }
     return newAliases;
   }
