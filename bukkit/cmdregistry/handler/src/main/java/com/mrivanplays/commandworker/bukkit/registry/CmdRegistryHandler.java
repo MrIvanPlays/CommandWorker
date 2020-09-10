@@ -35,6 +35,9 @@ public class CmdRegistryHandler {
       case "v1_16_R1":
         instance = new CmdRegistry1_16_R1();
         break;
+      case "v1_16_R2":
+        instance = new CmdRegistry1_16_R2();
+        break;
     }
     return instance;
   }

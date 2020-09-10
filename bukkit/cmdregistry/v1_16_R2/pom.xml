@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>commandworker-bukkit-cmdregistry</artifactId>
+    <groupId>com.mrivanplays</groupId>
+    <version>1.0.2-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>commandworker-bukkit-cmdregistry-v1_16_R2</artifactId>
+
+  <name>CommandWorker-Bukkit-CmdRegistry-v1_16_R2</name>
+  <description>v1_16_R2 implementation of the infile</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.mrivanplays</groupId>
+      <artifactId>commandworker-bukkit-cmdregistry-infile</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot</artifactId>
+      <version>1.16.2-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+</project>

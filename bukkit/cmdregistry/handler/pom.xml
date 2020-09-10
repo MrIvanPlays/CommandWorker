@@ -57,6 +57,12 @@
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.mrivanplays</groupId>
+      <artifactId>commandworker-bukkit-cmdregistry-v1_16_R2</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
 
